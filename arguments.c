@@ -1,15 +1,18 @@
 
 
 #include "arguments.h"
+#include "quotationParser.h"
 
 static char argvStorage[10000];
 char *argv[100];
 
+
+
 void argumentExtractor(char *userInput, int argumentCount)
 {
   
-  char arguments[10000000];
-  char joinedArguments[10000000];
+  char arguments[10000];
+  char joinedArguments[10000];
   bool quoted = false;
   char quoteChar = '\0';
   int i = 0;
@@ -18,6 +21,8 @@ void argumentExtractor(char *userInput, int argumentCount)
   strncpy(arguments, userInput, sizeof(arguments));
   arguments[sizeof(arguments) - 1] = '\0';
   joinedArguments[0] = '\0';
+
+  spacesInQuotes(arguments);
 
   char *token = strtok(arguments, " ");
   while(token != NULL && i < argumentCount)
@@ -42,6 +47,7 @@ void argumentExtractor(char *userInput, int argumentCount)
 
     else
     {
+	  restoreSpaces(token);
 	  removeQuotes(token);
 
 	  size_t tokenLen = strlen(token);
@@ -99,14 +105,14 @@ void argumentExtractor(char *userInput, int argumentCount)
 
 	}
 
-	token = strtok(NULL, " ");
+	
 
   }
     
-
+  token = strtok(NULL, " ");
 
   }
-  argv[i] = 
+  argv[i] = NULL;
 }
 
 void argumentCounter(char *userInput, int* argumentCount)
@@ -126,26 +132,7 @@ void argumentCounter(char *userInput, int* argumentCount)
     }
 
   }
-  printf("Argc : %d\n", *argumentCount);
+  
 
 }
 
-bool toogleQuotes(bool activeQuotes)
-{
-    printf("now : %d, changed : %d\n", activeQuotes, !activeQuotes);
-    return !activeQuotes;
-}
-
-void removeQuotes(char *token)
-{
-   char *src = token; // Pointer to read
-    char *dst = token; // Pointer to write
-
-    while (*src) {
-        if (*src != '\"' && *src != '\'') {
-            *dst++ = *src;
-        }
-        src++;
-    }
-    *dst = '\0'; // Null-terminate the new string
-}

@@ -5,7 +5,37 @@
 
 static char argvStorage[10000];
 char *argv[100];
+int mode;
 
+void ArgumentExtractor(char *userInput, int argumentCount, int mode)
+{
+	switch(mode)
+	{
+		case normal:
+			normalExtractor(userInput, argumentCount);
+			break;
+		case singleQuote:
+			singleExtractor(userInput, argumentCount);
+			break;
+		case doubleQuote:
+			doubleExtractor(userInput, argumentCount);
+			break;
+
+	}
+}
+
+void normalExtractor(char *userInput, int argumentCount)
+{
+	normalExtractor(userInput, argumentCount);
+}
+void singleExtractor(char *userInput, int argumentCount)
+{
+	
+}
+void doubleExtractor(char *userInput, int argumentCount)
+{
+	
+}
 
 
 void argumentExtractor(char *userInput, int argumentCount)
@@ -32,10 +62,10 @@ void argumentExtractor(char *userInput, int argumentCount)
     {
 	
       size_t len = strlen(token);
-      bool startsQuoted = token[0] == '\'';
+      bool startQuoted = token[0] == '\'' || token[0] == '\"';
       bool closedInToken = (len > 1 && token[len - 1 ] == token[0]);
 
-      if (startsQuoted && !closedInToken)
+      if (startQuoted && !closedInToken)
       {
       
         quoted = true;
@@ -117,19 +147,37 @@ void argumentExtractor(char *userInput, int argumentCount)
 
 void argumentCounter(char *userInput, int* argumentCount)
 {
-
-  bool activeQuotes = false;
-  *argumentCount = 1;
+  char activeQuote = '\0';	
+  bool inToken = false;
+  *argumentCount = 0;
   for(int i = 0 ; userInput[i] != '\0' ; i++)
   {
-    if (userInput[i] == '\'')
+    if (userInput[i] == '\'' || userInput[i] == '\"')
     {
-      activeQuotes = toogleQuotes(activeQuotes);
+      if (activeQuote == '\0')
+	  {
+		activeQuote = userInput[i];
+		if(!inToken)
+		{
+			inToken = true;
+			(*argumentCount)++;
+		}
+	  }
+	  else if (activeQuote == userInput[i])
+	  {
+		activeQuote = '\0';
+	  }
+	  continue;
     }
-    if (userInput[i] == ' ' && activeQuotes == false)
+    if (userInput[i] == ' ' && activeQuote == '\0')
     {
-      (*argumentCount) ++ ;
+      inToken = false;
     }
+	else if (!inToken)
+	{
+		inToken = true;
+		(*argumentCount )++;
+	}
 
   }
   

@@ -2,37 +2,57 @@
 
 #include "quotationParser.h"
 
-bool toogleQuotes(bool activeQuotes)
-{
-    
-    return !activeQuotes;
-}
 
 void removeQuotes(char *token)
 {
-   char *src = token; // Pointer to read
-    char *dst = token; // Pointer to write
-
-    while (*src) {
-        if (*src != '\"' && *src != '\'') {
-            *dst++ = *src;
+    char activeQuote = '\0';
+    char *src = token;
+    char *dst = token;
+    while (*src != '\0')
+    {
+        if ((*src == '\'' || *src == '"'))
+        {
+            if (activeQuote == '\0')
+            {
+                activeQuote = *src;
+                src ++;
+                continue;
+            }
+            if (activeQuote == *src)
+            {
+                activeQuote = '\0';
+                src++;
+                continue;
+            }
         }
-        src++;
+
+        *dst++ = *src++;
     }
-    *dst = '\0'; // Null-terminate the new string
+
+    *dst = '\0';
+    
 }
 
 void spacesInQuotes(char *userInput)
 {
-	bool inQuote = false;
+	char activeQuote = '\0';
 
 	for (int i = 0 ; userInput[i] != '\0' ; i++)
 	{
 		if (userInput[i] == '\'' || userInput[i] == '\"')
 		{
-			inQuote = toogleQuotes(inQuote);
+			if (activeQuote == '\0')
+            {
+                activeQuote = userInput[i];
+            }
+            else if( activeQuote == userInput[i])
+            {
+                activeQuote = '\0';
+            }
+            
 		}
-		if(userInput[i] == ' ' && inQuote)
+
+		if(userInput[i] == ' ' && activeQuote != '\0')
 		{
 			userInput[i] = 31;
 		}

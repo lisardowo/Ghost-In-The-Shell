@@ -34,6 +34,8 @@ void REPL()
     int argumentCount = 0;
     bool redirectedstdout = false;
     bool redirectedstderr = false;
+    bool appendStdOut = false;
+    bool appendStdErr = false;
     char *stdoutPath = NULL;
     char *stderrPath = NULL;
     //actuall terminal stuff
@@ -82,6 +84,37 @@ void REPL()
         
         break;
       }
+      else if (strcmp(argv[i], ">>") == 0) // appendstdout
+      {
+        if (argv[i + 1] == NULL)
+        {
+          printf("syntax error: expected file after '>'\n");
+          appendStdOut = false;
+          stdoutPath = NULL;
+          break ;          
+        }
+        
+        appendStdOut = true;
+        stdoutPath = argv[i + 1];
+        argv[i] = NULL;
+        
+        break;
+      }
+      else if (strcmp(argv[i], "2>>") == 0) // appendstderr
+      {
+        if (argv[i + 1] == NULL)
+        {
+          printf("syntax error: expected file after '>'\n");
+          appendStdErr = false;
+          stderrPath = NULL;
+          break ;          
+        }
+        appendStdErr = true;
+        stderrPath = argv[i + 1];
+        argv[i] = NULL;
+        
+        break;
+      }
       
     }
 
@@ -89,7 +122,7 @@ void REPL()
     {
       break;
     }
-    else if((strcmp("echo", argv[0]) == 0) && !redirectedstdout)
+    else if((strcmp("echo", argv[0]) == 0) && !redirectedstdout && !appendStdOut)
     {
       for(int i = 1 ; argv[i] != NULL ; i++)
       {
@@ -111,7 +144,7 @@ void REPL()
         printf("%s: %s: No such file or directory\n", argv[0], argv[1]);
       }
     }
-    else if((strcmp("pwd", argv[0]) == 0) && !redirectedstdout)
+    else if((strcmp("pwd", argv[0]) == 0) && !redirectedstdout && !appendStdOut)
     {
       char cwd[1024];
       if(getcwd(cwd, sizeof(cwd)))
@@ -119,7 +152,7 @@ void REPL()
         printf("%s\n",cwd);
       }
     }
-    else if((strcmp("type", argv[0]) == 0) && !redirectedstdout)
+    else if((strcmp("type", argv[0]) == 0) && !redirectedstdout && !appendStdOut)
     {
       
       if(!strcmp("echo", argv[1]) || !strcmp("exit", argv[1]) || !strcmp("type", argv[1]) || !strcmp("pwd", argv[1]) || !strcmp("cd", argv[1])) // not operator may seem odd but strcmp returns 0 if true, for if to properly works needs a 1 if true (reason of not)
@@ -143,7 +176,7 @@ void REPL()
     }
     else
     { 
-      executeBin(stdoutPath, stderrPath, redirectedstdout, redirectedstderr, argv);
+      executeBin(stdoutPath, stderrPath, redirectedstdout, redirectedstderr, appendStdOut, appendStdErr, argv);
     }
     }
   }

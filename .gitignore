@@ -1,2 +1,5 @@
 src/test/*
 shell
+src/historyFile.txt
+/historyFile.txt
+src/*.txt

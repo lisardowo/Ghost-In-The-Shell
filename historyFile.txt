@@ -1,1 +1,6 @@
-1  history2  echo hola3  asdw4  dawdw5  dea6  history7  exit
+exit
+ exit
+exit
+clear
+exxit
+exit

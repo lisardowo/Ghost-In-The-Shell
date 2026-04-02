@@ -14,12 +14,11 @@ char *historyBuffer[10000];
 int historyCount;
 
 
-
 int main()
 {
   
   setbuf(stdout, NULL);
-
+  
   REPL();
 
   return 0;
@@ -28,13 +27,25 @@ int main()
 
 void REPL()
 {
-
+  char prompt[1024];
   availableCommands commandsList;
   fillCommands(&commandsList);
   getHistory(&historyCount, historyBuffer);
 
   while (true)
   {
+    if (getcwd(prompt, sizeof(prompt)) != NULL)
+    {
+      size_t len = strlen(prompt);
+      if (len + 2 < sizeof(prompt))
+      {
+        prompt[len] = ' ';
+        prompt[len + 1] = '$';
+        prompt[len + 2] = ' ';
+        prompt[len + 3] = '\0';
+      }
+    }
+
     //set up
     memset(argv,0,sizeof(argv));
     int argumentCount = 0;
@@ -45,7 +56,7 @@ void REPL()
     char *stdoutPath = NULL;
     char *stderrPath = NULL;
     //actuall terminal stuff
-    readLineTab("$ ", &commandsList, userInput, sizeof(userInput), &historyCount, historyBuffer);
+    readLineTab(prompt, &commandsList, userInput, sizeof(userInput), &historyCount, historyBuffer);
     //manage input
     sanitizeInput(userInput);
     addHistory(userInput, &historyCount, historyBuffer);
@@ -126,7 +137,7 @@ void REPL()
     if(strcmp("exit", argv[0]) == 0)
     {
 
-      dumpHistory(historyCount, historyBuffer);
+      dumpHistory(historyBuffer);
       break;
 
     }
@@ -206,10 +217,7 @@ void REPL()
   }
 
 
+void createPrompt()
+{
 
-
-
-
-
-
-
+}

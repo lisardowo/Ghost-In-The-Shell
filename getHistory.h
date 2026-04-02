@@ -8,5 +8,5 @@
 #include <unistd.h>
 
 void addHistory(char *command, int *historyCount, char *historyBuffer[]);
-void dumpHistory(int historyCount, char *historyBuffer[]);
+void dumpHistory(char *historyBuffer[]);
 void getHistory(int *historyCount, char *historyBuffer[]);

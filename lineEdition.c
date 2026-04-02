@@ -49,7 +49,6 @@ void readLineTab(char *prompt, availableCommands *list, char *out, size_t outSiz
 
     if(!enableRaw())
     {
-        printf("problems");
         return;
     }
 

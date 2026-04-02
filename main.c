@@ -9,8 +9,8 @@
 #include "inputManager.h"
 
 void REPL();
-
-
+char *historyBuffer[10000];
+int historyCount;
 
 
 
@@ -154,10 +154,19 @@ void REPL()
         printf("%s\n",cwd);
       }
     }
-    else if((strcmp("type", argv[0]) == 0) && !redirectedstdout && !appendStdOut)
+    else if((strcmp("history", argv[0]) == 0) && !redirectedstdout && !appendStdOut)
     {
       
-      if(!strcmp("echo", argv[1]) || !strcmp("exit", argv[1]) || !strcmp("type", argv[1]) || !strcmp("pwd", argv[1]) || !strcmp("cd", argv[1])) // not operator may seem odd but strcmp returns 0 if true, for if to properly works needs a 1 if true (reason of not)
+      for (int i = 0 ; i < historyCount ; i++)
+      {
+        printf("%s\n",historyBuffer[i]);
+      }
+
+    }
+    else if((strcmp("type", argv[0]) == 0) && !redirectedstdout && !appendStdOut)
+    { 
+
+      if(!strcmp("echo", argv[1]) || !strcmp("exit", argv[1]) || !strcmp("type", argv[1]) || !strcmp("pwd", argv[1]) || !strcmp("cd", argv[1]) || !strcmp("history", argv[1])) // not operator may seem odd but strcmp returns 0 if true, for if to properly works needs a 1 if true (reason of not)
       {
         printf("%s is a shell builtin\n", argv[1]);
       }

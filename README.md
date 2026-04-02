@@ -207,13 +207,12 @@ this section explains how to add new features:
 ## 6 Current Known Gaps
 
   1. History is runtime only (not persistent across sessions)
-  2. Current line editor does not support full cursor movement/advanced editing
+  2. Current line editor does not support advanced editing
   3. Autocompletion is first token only, does not have any class of argument-aware/flags completion
   4. Redirection parsing not support complex combinations or multpile redirections in the same command
-  5. Builtin argument validation is minimal, may fail or behave unexpectedly
-  6. no config system
-  8. some buffers are fixed size
-  9. Error messages even tho are functional, some outpus are inconsistent in style and detail
+  5. no config system
+  6. some buffers are fixed size
+  7. Error messages even tho are functional, some outpus are inconsistent in style and detail
 
 ## 7 Installation and Quick Test
 
@@ -225,27 +224,34 @@ this section explains how to add new features:
   3. make
   4. cmake
   5. git
+  
 ```
 
 ### 7.2 Clone
 
   In your terminal: 
 ```
+
   1. git clone https://github.com/lisardowo/Ghost-In-The-Shell.git
   2. cd Ghost-In-The-Shell
+
 ```
 ### 7.3 Build 
   
   In your terminal: 
   ```
+
   1. make
+
   ```
 
 ### 7.4 Run
 
 In your terminal: 
 ```
+
 ./shell
+
 ```
 
 ### 7.5 Some quick tests

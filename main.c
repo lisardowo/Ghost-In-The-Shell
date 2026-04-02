@@ -28,8 +28,10 @@ int main()
 
 void REPL()
 {
+
   availableCommands commandsList;
   fillCommands(&commandsList);
+  getHistory(&historyCount, historyBuffer);
 
   while (true)
   {
@@ -123,7 +125,10 @@ void REPL()
 
     if(strcmp("exit", argv[0]) == 0)
     {
+
+      dumpHistory(historyCount, historyBuffer);
       break;
+
     }
     else if((strcmp("echo", argv[0]) == 0) && !redirectedstdout && !appendStdOut)
     {
@@ -159,10 +164,10 @@ void REPL()
     else if((strcmp("history", argv[0]) == 0) && !redirectedstdout && !appendStdOut)
     {
       
-      for (int i = 0 ; i < historyCount ; i++)
+      for (int i = 0 ; historyBuffer[i] != NULL ; i++)
       {
-        printf("%s\n",historyBuffer[i]);
-      }
+        printf("%d  %s\n", i + 1, historyBuffer[i]);
+      } 
 
     }
     else if((strcmp("type", argv[0]) == 0) && !redirectedstdout && !appendStdOut)

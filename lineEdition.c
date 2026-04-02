@@ -38,8 +38,12 @@ void firstToken(char *buf, char *out, size_t outSize)
     out[i] = '\0';
 }
 
-void readLineTab(char *prompt, availableCommands *list, char *out, size_t outSize)
+void readLineTab(char *prompt, availableCommands *list, char *out, size_t outSize,int *historyCount, char *historyBuffer[])
 {
+
+    int historyIndex = *historyCount;
+    char tempDraft[outSize];
+    strcpy(tempDraft, "");
     size_t len = 0;
     int tabCount = 0;
     out[0] = '\0';
@@ -60,6 +64,68 @@ void readLineTab(char *prompt, availableCommands *list, char *out, size_t outSiz
         {
             disableRaw();
             return;
+        }
+
+        if (c == '\033')
+        {
+            char seq[3];
+            if (read(STDIN_FILENO, &seq[0], 1) == 0)
+            {
+                continue;
+            }
+            if (read(STDIN_FILENO, &seq[1], 1) == 0)
+            {
+                continue;
+            }
+
+            if (seq[0] == '[')
+            {
+                if (seq[1] == upArrowKey)
+                {
+                    
+                    if (*historyCount <= 0)
+                    {
+                        continue;
+                    }
+                    if (historyIndex == *historyCount)
+                    {
+                        strncpy(tempDraft, out, outSize);
+                        tempDraft[outSize - 1] = '\0';
+                    }
+                    if (historyIndex > 0)
+                    {
+                        historyIndex--;
+                        strncpy(out, historyBuffer[historyIndex], outSize);
+                        out[outSize - 1] = '\0';
+                        len = strlen(out);
+                        redraw(prompt, out);
+                    }
+                }
+            
+            else if (seq[1] == downArrowKey)
+            {
+                if (*historyCount == 0)
+                {
+                    continue;
+                }
+                if (historyIndex < *historyCount)
+                {
+                    historyIndex ++;
+                    if (historyIndex == *historyCount)
+                    {
+                        strncpy(out, tempDraft, outSize - 1);
+                    }
+                    else
+                    {
+                        strncpy(out, historyBuffer[historyIndex], outSize);
+                    }
+                    out[outSize - 1] = '\0';
+                    len = strlen(out);
+                    redraw(prompt,out);
+                }
+            }
+        }
+            continue;
         }
 
         if (c == '\n')
@@ -145,6 +211,7 @@ void readLineTab(char *prompt, availableCommands *list, char *out, size_t outSiz
                 out[len ++] = c;
                 out[len] = '\0'; 
                 write(STDOUT_FILENO, &c , 1);
+                historyIndex = *historyCount;
             }
             tabCount = 0;
         }

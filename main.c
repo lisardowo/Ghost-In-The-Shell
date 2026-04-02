@@ -43,10 +43,10 @@ void REPL()
     char *stdoutPath = NULL;
     char *stderrPath = NULL;
     //actuall terminal stuff
-    readLineTab("$ ", &commandsList, userInput, sizeof(userInput));
+    readLineTab("$ ", &commandsList, userInput, sizeof(userInput), &historyCount, historyBuffer);
     //manage input
-    addHistory(userInput, historyCount, historyBuffer);
     sanitizeInput(userInput);
+    addHistory(userInput, &historyCount, historyBuffer);
     argumentCounter(userInput, &argumentCount);
     argumentExtractor(userInput, argumentCount);
     

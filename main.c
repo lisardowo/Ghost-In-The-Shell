@@ -135,7 +135,8 @@ void REPL()
     }
     else if(strcmp("cd", argv[0]) == 0)
     {
-      if(strcmp("~", argv[1]) == 0)
+
+      if(argv[1] == NULL || strcmp("~", argv[1]) == 0)
       {
         
         char *home = getenv("HOME");
@@ -166,6 +167,11 @@ void REPL()
     }
     else if((strcmp("type", argv[0]) == 0) && !redirectedstdout && !appendStdOut)
     { 
+
+      if (argv[1] == NULL)
+      {
+        printf("Usage : type <command>");
+      }
 
       if(!strcmp("echo", argv[1]) || !strcmp("exit", argv[1]) || !strcmp("type", argv[1]) || !strcmp("pwd", argv[1]) || !strcmp("cd", argv[1]) || !strcmp("history", argv[1])) // not operator may seem odd but strcmp returns 0 if true, for if to properly works needs a 1 if true (reason of not)
       {

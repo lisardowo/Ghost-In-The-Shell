@@ -33,6 +33,11 @@ void executeBin(char *stdoutPath,char *stdErrPath, bool redirectedstdout, bool r
 
   char* binPath = getPath(argv[0]);
 
+  if(binPath == NULL)
+  {
+    printf("%s: command not found\n", argv[0]);
+  }
+
   if (fork() == 0)
   {
     if(redirectedstdout)

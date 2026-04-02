@@ -21,9 +21,13 @@ void disableRaw(void)
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &g_old);
 }
 
-void redraw(char *prompt, char *buf)
+void redraw(char *prompt, char *buf, size_t cursorPos)
 {
     printf("\r\033[2K%s%s", prompt, buf);
+
+    int column = strlen(prompt) + cursorPos + 1;
+
+    printf("\033[%dG", column);
     fflush(stdout);
 }
 
@@ -42,6 +46,7 @@ void readLineTab(char *prompt, availableCommands *list, char *out, size_t outSiz
 {
 
     int historyIndex = *historyCount;
+    size_t cursorPos = 0;
     char tempDraft[outSize];
     strcpy(tempDraft, "");
     size_t len = 0;
@@ -80,6 +85,22 @@ void readLineTab(char *prompt, availableCommands *list, char *out, size_t outSiz
 
             if (seq[0] == '[')
             {
+                if (seq[1] == leftArrowKey)
+                {
+                    if(cursorPos > 0)
+                    {
+                        cursorPos --;
+                        redraw(prompt, out, cursorPos);
+                    }
+                }
+                if(seq[1] == rightArrowKey)
+                {
+                    if (cursorPos < len)
+                    {
+                        cursorPos++;
+                        redraw(prompt, out, cursorPos);
+                    }
+                }
                 if (seq[1] == upArrowKey)
                 {
                     
@@ -98,7 +119,8 @@ void readLineTab(char *prompt, availableCommands *list, char *out, size_t outSiz
                         strncpy(out, historyBuffer[historyIndex], outSize);
                         out[outSize - 1] = '\0';
                         len = strlen(out);
-                        redraw(prompt, out);
+                        cursorPos = len;
+                        redraw(prompt, out, cursorPos);
                     }
                 }
             
@@ -121,7 +143,8 @@ void readLineTab(char *prompt, availableCommands *list, char *out, size_t outSiz
                     }
                     out[outSize - 1] = '\0';
                     len = strlen(out);
-                    redraw(prompt,out);
+                    cursorPos = len;
+                    redraw(prompt,out, cursorPos);
                 }
             }
         }
@@ -138,11 +161,16 @@ void readLineTab(char *prompt, availableCommands *list, char *out, size_t outSiz
 
         if (c == 127 || c == '\b')
         {
-            if (len > 0)
+            if (cursorPos > 0)
             {
+
+                for (size_t i = cursorPos -1 ; i < len ; i++)
+                {
+                    out[i] = out[i + 1];
+                }
                 len --;
-                out[len] = '\0';
-                redraw(prompt, out);
+                cursorPos --;
+                redraw(prompt, out, cursorPos);
 
             }
             tabCount = 0;
@@ -174,7 +202,7 @@ void readLineTab(char *prompt, availableCommands *list, char *out, size_t outSiz
                     out[len++] = ' ';
                 }
                 out[len] = '\0';
-                redraw(prompt, out);
+                redraw(prompt, out , cursorPos);
             }
             else 
             {
@@ -185,7 +213,7 @@ void readLineTab(char *prompt, availableCommands *list, char *out, size_t outSiz
                     out[len ++] = matches[0][prefixLen++];
                 }
                 out[len] = '\0';
-                redraw(prompt, out);
+                redraw(prompt, out, cursorPos);
 
                 if (tabCount >= 1)
                 {
@@ -195,7 +223,7 @@ void readLineTab(char *prompt, availableCommands *list, char *out, size_t outSiz
                         printf("%s ", matches[i]);
                     }
                     printf("\n");
-                    redraw(prompt, out);
+                    redraw(prompt, out, cursorPos);
 
                 
                 }
@@ -206,12 +234,21 @@ void readLineTab(char *prompt, availableCommands *list, char *out, size_t outSiz
         }
         if (c >= 32 && c <= 126)
         {
-            if(len +1 < outSize)
+            if(len + 1 < outSize)
             {
-                out[len ++] = c;
+                if (cursorPos < len)
+                {
+                    for(size_t i = len; i > cursorPos ; i--)
+                    {
+                        out[i] = out[i - 1];
+                    }
+                }
+                out[cursorPos] = c;
+                len ++;
+                cursorPos++;
                 out[len] = '\0'; 
-                write(STDOUT_FILENO, &c , 1);
-                historyIndex = *historyCount;
+              
+                redraw(prompt, out, cursorPos);
             }
             tabCount = 0;
         }

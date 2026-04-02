@@ -9,10 +9,11 @@
 #include "inputManager.h"
 #include "getHistory.h"
 
+void createPrompt();
 void REPL();
 char *historyBuffer[10000];
 int historyCount;
-
+char prompt[1024];
 
 int main()
 {
@@ -27,24 +28,14 @@ int main()
 
 void REPL()
 {
-  char prompt[1024];
+  createPrompt();
   availableCommands commandsList;
   fillCommands(&commandsList);
   getHistory(&historyCount, historyBuffer);
 
   while (true)
   {
-    if (getcwd(prompt, sizeof(prompt)) != NULL)
-    {
-      size_t len = strlen(prompt);
-      if (len + 2 < sizeof(prompt))
-      {
-        prompt[len] = ' ';
-        prompt[len + 1] = '$';
-        prompt[len + 2] = ' ';
-        prompt[len + 3] = '\0';
-      }
-    }
+
 
     //set up
     memset(argv,0,sizeof(argv));
@@ -219,5 +210,25 @@ void REPL()
 
 void createPrompt()
 {
+
+    if (getcwd(prompt, sizeof(prompt)) != NULL)
+    {
+      char *temp[1024];
+      char modifiablePrompt[1024];
+      strncpy(modifiablePrompt, prompt, sizeof(modifiablePrompt)); 
+      modifiablePrompt[sizeof(modifiablePrompt) - 1] = '\0';
+      char *modpromptPtr = strtok(modifiablePrompt, "/");
+      int i = 0;
+      while(modpromptPtr != NULL)
+      {
+
+        temp[i] = modpromptPtr;
+
+        i++;
+        modpromptPtr = strtok(NULL, "/");
+      }
+      snprintf(prompt, sizeof(prompt), "%s/%s $ ", temp[i - 2], temp[i - 1]);
+
+    }
 
 }

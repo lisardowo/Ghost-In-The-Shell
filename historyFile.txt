@@ -4,3 +4,11 @@ exit
 clear
 exxit
 exit
+git add.
+git add .
+git commit -m "prompting with whole dir"
+git push
+exit
+l jclear
+clear
+exit

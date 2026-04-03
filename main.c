@@ -90,6 +90,7 @@ void REPL()
     //tok0 op0  tok1 op1 tok2
     //ls -lh > test.txt
     //tok tok op tok
+   
     if (strcmp(argv[i], ">") == 0 || strcmp(argv[i], "1>") == 0)
       {
         if (argv[i + 1] == NULL)
@@ -104,17 +105,18 @@ void REPL()
           redirectedstdout = true;
           stdoutPath = argv[i + 1];
           
-          argv[i] = NULL;
           argv[i + 1] = NULL;
+          argv[i] = NULL;
+          
           
         }
          
       }
       else if (strcmp(argv[i], "2>") == 0)
       {
-        if (tokens[i + 1] == NULL)
+        if (argv[i + 1] == NULL)
         {
-          printf("syntax error: expected file after '>'\n");
+          printf("syntax error: expected file after '2>'\n");
           redirectedstderr = false;
           stderrPath = NULL;
           break ;          
@@ -122,16 +124,19 @@ void REPL()
         }
         else
         {
+        
           redirectedstderr = true;
           stderrPath = argv[i + 1];
-          argv[i] = NULL;
+          
           argv[i + 1] = NULL;
+          argv[i] = NULL;
+          
           
         }
       }
       else if (strcmp(argv[i], ">>") == 0) // appendstdout
       {
-        if (tokens[i + 1] == NULL)
+        if (argv[i + 1] == NULL)
         {
           printf("syntax error: expected file after '>'\n");
           appendStdOut = false;
@@ -142,6 +147,7 @@ void REPL()
         { 
           appendStdOut = true;
           stdoutAppendPath = argv[i + 1];
+          
           argv[i] = NULL;
           argv[i + 1] = NULL;
           
@@ -149,7 +155,7 @@ void REPL()
       }
       else if (strcmp(argv[i], "2>>") == 0) // appendstderr
       {
-        if (tokens[i + 1] == NULL)
+        if (argv[i + 1] == NULL)
         {
           printf("syntax error: expected file after '>'\n");
           appendStdErr = false;
@@ -161,6 +167,7 @@ void REPL()
           
           appendStdErr = true;
           stderrAppendPath = argv[i + 1];
+          
           argv[i] = NULL;
           argv[i + 1] = NULL;
         
@@ -247,9 +254,9 @@ void REPL()
     }
     else
     { 
-      //for(int i = 0 ; tokens[i] != NULL ; i++)
-      //printf("251 : debug %s\n", argv[i]);;
+
       executeBin(stdoutPath, stderrPath, stdoutAppendPath, stderrAppendPath, redirectedstdout, redirectedstderr, appendStdOut, appendStdErr, argv);
+    
     }
     }
     commandsFree(&commandsList);

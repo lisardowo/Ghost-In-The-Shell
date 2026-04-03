@@ -64,6 +64,7 @@ int executeBin(char *stdoutPath,char *stdErrPath,char *stdOutAppendPath, char *s
       }
       dup2(fdError, STDERR_FILENO);
       close(fdError);
+      
     }
 
     if(appendStdOut)

@@ -9,3 +9,4 @@
 bool isOperator(char *token);
 void createPrompt();
 int getFileDescriptor(const char* descriptorTarget, int flags);
+char* getPath(char *command);

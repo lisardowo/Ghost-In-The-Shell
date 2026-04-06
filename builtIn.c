@@ -1,7 +1,7 @@
 
 #include "builtIn.h"
 
-int type(char *current[][100], bool redirectedstdout ,bool redirectedstderr, bool appendStdErr, bool appendStdOut, char *stdoutPath, char *stderrPath , char *stderrAppendPath , char *stdoutAppendPath)
+int type(char **current, bool redirectedstdout ,bool redirectedstderr, bool appendStdErr, bool appendStdOut, char *stdoutPath, char *stderrPath , char *stderrAppendPath , char *stdoutAppendPath)
 {
     //int fileDescriptor = getFileDescriptor(stdoutPath , O_TRUNC | O_CREAT | O_WRONLY);
     if (current[1] == NULL)
@@ -18,16 +18,74 @@ int type(char *current[][100], bool redirectedstdout ,bool redirectedstderr, boo
     }
     else
     {
-        char *path = getPath(current[1]);
-        if (path != NULL)
+        if(redirectedstdout)
         {
-          printf("%s is %s\n", current[1], path);
-          return  0;
+            int fd = getFileDescriptor(stdoutPath, O_APPEND | O_CREAT | O_WRONLY);
+            char *path = getPath(current[1]);
+            if (path != NULL)
+            {
+                dprintf(fd, "%s is %s\n", current[1], path);
+                return  0;
+            }
+            else
+            {
+                printf("%s: not found\n", current[1]);
+                return 1;
+            }
         }
-        else
+
+
+        if(redirectedstderr)
         {
-          printf("%s: not found\n", current[1]);
-          return 1;
+            int fd = getFileDescriptor(stderrPath, O_TRUNC | O_CREAT | O_WRONLY);
+            char *path = getPath(current[1]);
+            if (path != NULL)
+            {
+                printf("%s is %s\n", current[1], path);
+                return  0;
+            }
+            else
+            {
+                dprintf(fd, "%s: not found\n", current[1]);
+                return 1;
+            }
         }
+
+
+        if(appendStdOut)
+        {
+            int fd = getFileDescriptor(stdoutAppendPath, O_APPEND | O_CREAT | O_WRONLY);
+            char *path = getPath(current[1]);
+            if (path != NULL)
+            {
+                dprintf(fd, "%s is %s\n", current[1], path);
+                return  0;
+            }
+            else
+            {
+                printf("%s: not found\n", current[1]);
+                return 1;
+            }
+        }
+
+
+        if(appendStdErr)
+        {
+            int fd = getFileDescriptor(stderrAppendPath, O_APPEND | O_CREAT | O_WRONLY);
+            char *path = getPath(current[1]);
+            if (path != NULL)
+            {
+                printf("%s is %s\n", current[1], path);
+                return  0;
+            }
+            else
+            {
+                dprintf(fd, "%s: not found\n", current[1]);
+                return 1;
+            }
+        }
+
     }
+
+    return 1; 
 }

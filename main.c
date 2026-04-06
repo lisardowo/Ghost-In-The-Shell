@@ -279,60 +279,11 @@ void REPL()
 
     else if(strcmp("type", current[0]) == 0 )
     {
-      if(!redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
-      {
-        type(current, redirectedstdout, redirectedstderr, appendStdOut, appendStdErr, stdoutPath, stderrPath, stdoutAppendPath, stderrAppendPath) ;
-      }
-      else
-      {//TODO THIS IS GON BE UGGLY SORRY -> turn this into a function
-          if(stdoutPath)
-          {
-            int fileDescriptor = getFileDescriptor(stdoutPath , O_TRUNC | O_CREAT | O_WRONLY);
-             if (current[1] == NULL)
-              {
-                dprintf("Usage : type <command>\n") ;
-                lastStatus = 1;
-              }
-              else if((!strcmp("echo", current[1]) || !strcmp("exit", current[1]) ||
-             !strcmp("type", current[1]) || !strcmp("pwd", current[1]) ||
-             !strcmp("cd", current[1]) || !strcmp("history", current[1])) && !redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
-             {
-             dprintf("%s is a shell builtin\n", current[1]);
-             lastStatus = 0;
-             }
-      else
-      {
-        char *path = getPath(current[1]);
-        if (path != NULL)
-        {
-          dprintf("%s is %s\n", current[1], path);
-          lastStatus = 0;
-        }
-        else
-        {
-          printf("%s: not found\n", current[1]);
-          lastStatus = 1;
-        }
-        }
-          }
-          
-          if(stderrPath)
-          {
-            int fileDescriptor = getFileDescriptor(stderrPath, O_TRUNC | O_CREAT | O_WRONLY);
-            
-            lastStatus = 1;
-          }
+      
+      type(current, redirectedstdout, redirectedstderr, appendStdOut, appendStdErr, stdoutPath, stderrPath, stdoutAppendPath, stderrAppendPath) ;
+      
 
-          if(appendStdOut)
-          {
-            int fileDescriptor = getFileDescriptor(appendStdOut, O_APPEND | O_CREAT | O_WRONLY);
-          }
-
-          if(appendStdErr)
-          {
-            int fileDescriptor = getFileDescriptor(appendStdErr, O_APPEND | O_CREAT | O_WRONLY);
-          }
-      }
+    
     }
 
     else

@@ -2,6 +2,7 @@
 #include <fcntl.h>
 #include "utils.h"
 
+char binPath[100000];
 extern char prompt[1024];
 
 void createPrompt()
@@ -46,4 +47,30 @@ int getFileDescriptor(const char *descriptorTarget, int flags)
   int fileDescriptor = open(descriptorTarget, flags,0644);
 
   return fileDescriptor;
+}
+
+
+char* getPath(char *command)
+{
+  char *path = getenv("PATH");
+  char modifiablePath[10000];
+  strncpy(modifiablePath, path, sizeof(modifiablePath));
+  modifiablePath[sizeof(modifiablePath) - 1] = '\0';
+  char *myPtr = strtok(modifiablePath, ":");
+
+  while(myPtr != NULL) 
+  {
+    
+    snprintf(binPath, sizeof(binPath), "%s/%s", myPtr, command);
+    
+    if (access(binPath, X_OK) == 0)
+    {
+
+      return binPath;
+
+    }
+   
+    myPtr = strtok(NULL, ":");
+  }
+  return NULL;
 }

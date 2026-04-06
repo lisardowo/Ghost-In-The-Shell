@@ -1,32 +1,8 @@
 #include "binariesManager.h"
 #include "utils.h"
 
-char binPath[100000];
 
-char* getPath(char *command)
-{
-  char *path = getenv("PATH");
-  char modifiablePath[10000];
-  strncpy(modifiablePath, path, sizeof(modifiablePath));
-  modifiablePath[sizeof(modifiablePath) - 1] = '\0';
-  char *myPtr = strtok(modifiablePath, ":");
 
-  while(myPtr != NULL) 
-  {
-    
-    snprintf(binPath, sizeof(binPath), "%s/%s", myPtr, command);
-    
-    if (access(binPath, X_OK) == 0)
-    {
-
-      return binPath;
-
-    }
-   
-    myPtr = strtok(NULL, ":");
-  }
-  return NULL;
-}
 
 int executeBin(char *stdoutPath,char *stdErrPath,char *stdOutAppendPath, char *stdErrAppendPath, bool redirectedstdout, bool redirectedStdErr, bool appendStdOut, bool appendStdErr, char *tokens[])
 {

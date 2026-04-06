@@ -40,3 +40,9 @@ bool isOperator(char *token)
 
 }
 
+int getFileDescriptor(int descriptorTarget)
+{
+  int fileDescriptor = creat(descriptorTarget, 0644);
+
+  return fileDescriptor;
+}

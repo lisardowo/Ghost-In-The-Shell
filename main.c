@@ -45,7 +45,6 @@ void REPL()
     bool redirectedstderr = false;
     bool appendStdOut = false;
     bool appendStdErr = false;
-    bool andOperator = false;
     char *stdoutPath = NULL;
     char *stderrPath = NULL;
     char *stdoutAppendPath = NULL;
@@ -67,11 +66,11 @@ void REPL()
       continue;
     }
 
-char *commandToken[1000];
+
 int commandCount = 0;
 int andSegment = 0;
 int andPosition = 0;
-//TODO from 64 to 83 are probablly gon be erased
+//it was efectively erased lol
   for(int i = 0 ; argv[i] != NULL ; i++)
   {
     //echo  >   eas 2>  ead
@@ -184,97 +183,142 @@ int andPosition = 0;
 
       }
   segments[andSegment][andPosition++] = argv[i];
-  commandToken[commandCount++] = argv[i];
+
 }
 
 //for (int i = 0 ; commandToken[i] != NULL ; i++ ) printf("%s", commandToken[i]);;
-segments[andSegment][andPosition] = NULL;
-int segmentCount = andSegment + 1;
-commandToken[commandCount] = NULL ;
+  segments[andSegment][andPosition] = NULL;
+  int segmentCount = andSegment + 1;
 
 
-    if(strcmp("exit", argv[0]) == 0)
+  int lastStatus = 0 ;
+
+  for (int v = 0 ; v < segmentCount ; v++)
+  {
+    char **current = segments[v];
+    if (current[0] == NULL)
     {
-
-      dumpHistory(historyBuffer);
-      break;
-
+      lastStatus = 1 ;
+      break ; 
     }
-    else if((strcmp("echo", argv[0]) == 0) && !redirectedstdout && !appendStdOut)
+
+    if(v > 0 && lastStatus != 0)
     {
-      for(int i = 1 ; argv[i] != NULL ; i++)
+      break;
+    }
+
+    if(strcmp("exit", current[0]) == 0)
+    {
+        dumpHistory(historyBuffer);
+        return;
+    }
+
+
+    else if(strcmp("echo", current[0]) == 0 && !redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
+    {
+      for (int i = 1 ; current[i] != NULL ; i++)
       {
-      printf("%s ", argv[i]);
+        printf("%s", current[i]);
       }
       printf("\n");
+      lastStatus = 0;
     }
-    else if(strcmp("cd", argv[0]) == 0)
-    {
 
-      if(argv[1] == NULL || strcmp("~", argv[1]) == 0)
-      {
-        
-        char *home = getenv("HOME");
-        chdir(home);
-        
-      }
-      else if ((chdir(argv[1])) != 0)
-      {
-        printf("%s: %s: No such file or directory\n", commandToken[0], commandToken[1]);
-      }
-    }
-    else if((strcmp("pwd", argv[0]) == 0) && !redirectedstdout && !appendStdOut)
-    {
-      char cwd[1024];
-      if(getcwd(cwd, sizeof(cwd)))
-      {
-        printf("%s\n",cwd);
-      }
-    }
-    else if((strcmp("history", argv[0]) == 0) && !redirectedstdout && !appendStdOut)
+
+
+    else if(strcmp("cd", current[0]) == 0 && !redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
     {
       
-      for (int i = 0 ; historyBuffer[i] != NULL ; i++)
+      if (current[1] == NULL || strcmp ("~", current[1]) == 0 )
       {
-        printf("%d  %s\n", i + 1, historyBuffer[i]);
-      } 
-
-    }
-    else if((strcmp("type", argv[0]) == 0) && !redirectedstdout && !appendStdOut)
-    { 
-
-      if (argv[1] == NULL)
-      {
-        printf("Usage : type <command>");
-      }
-
-      if(!strcmp("echo", argv[1]) || !strcmp("exit", argv[1]) || !strcmp("type", argv[1]) || !strcmp("pwd", argv[1]) || !strcmp("cd", argv[1]) || !strcmp("history", argv[1])) // not operator may seem odd but strcmp returns 0 if true, for if to properly works needs a 1 if true (reason of not)
-      {
-        printf("%s is a shell builtin\n", argv[1]);
+        char *homePath = getenv("HOME");
+        lastStatus = (chdir(homePath) ) ? 0 : 1;
       }
       else
       {
-        
-        char* path = getPath(argv[1]);
-        if (path != NULL)
+        if (chdir(current[1]) != 0)
         {
-          printf("%s is %s\n",argv[1], path);
+          printf("%s: no such file or directory : \"%s\" ", current[0], current[1]);
+          lastStatus = 1;
         }
         else
         {
-          printf("%s: not found\n", argv[1]);
+          lastStatus = 9;
         }
       }
-      
-    }
-    else
-    { 
 
-      executeBin(stdoutPath, stderrPath, stdoutAppendPath, stderrAppendPath, redirectedstdout, redirectedstderr, appendStdOut, appendStdErr, commandToken);
-    
     }
+
+
+    else if(strcmp("pwd", current[0]) == 0 && !redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
+    {
+      char cwd[1024];
+      if (getcwd(cwd, sizeof(cwd)))
+      {
+        printf("%s\n",cwd);
+        lastStatus = 0;
+      }
+      else
+      {
+        lastStatus = 1;
+      }
     }
-    commandsFree(&commandsList);
+
+
+    else if(strcmp("history", current[0]) == 0 && !redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
+    {
+      for(int i = 0 ; historyBuffer[i] != NULL ; i++)
+      {
+        printf("%d %s\n", i + 1, historyBuffer[i]);
+      }
+      lastStatus = 0;
+    }
+
+
+    else if(strcmp("type", current[0]) == 0 )
+    {
+      if(!redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
+      {
+      if (current[1] == NULL)
+      {
+        printf("Usage : type <command>\n") ;
+        lastStatus = 1;
+      }
+      else if((!strcmp("echo", current[1]) || !strcmp("exit", current[1]) ||
+             !strcmp("type", current[1]) || !strcmp("pwd", current[1]) ||
+             !strcmp("cd", current[1]) || !strcmp("history", current[1])) && !redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
+      {
+        printf("%s is a shell builtin\n", current[1]);
+        lastStatus = 0;
+      }
+      else
+      {
+        char *path = getPath(current[1]);
+        if (path != NULL)
+        {
+          printf("%s is %s\n", current[1], path);
+          lastStatus = 0;
+        }
+        else
+        {
+          printf("%s: not found\n", current[1]);
+          lastStatus = 1;
+        }
+        }
+      }
+      else
+      {
+
+      }
+    }
+
+    else
+    {
+      lastStatus = executeBin(stdoutPath, stderrPath, stdoutAppendPath, stderrAppendPath, redirectedstdout, redirectedstderr, appendStdOut, appendStdErr, current);
+    }
+
+
   }
 
-
+}
+}

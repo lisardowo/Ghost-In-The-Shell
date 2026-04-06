@@ -1,5 +1,5 @@
 #include "binariesManager.h"
-
+#include "utils.h"
 
 char binPath[100000];
 
@@ -44,7 +44,7 @@ int executeBin(char *stdoutPath,char *stdErrPath,char *stdOutAppendPath, char *s
     if(redirectedstdout)
     {
       
-      int fdOut = creat(stdoutPath, 0644);
+      int fdOut = getFileDescriptor(stdoutPath, O_TRUNC | O_CREAT | O_WRONLY);
       if (fdOut < 0)
       {
         return -1;
@@ -57,7 +57,7 @@ int executeBin(char *stdoutPath,char *stdErrPath,char *stdOutAppendPath, char *s
     if (redirectedStdErr)
     {
       
-      int fdError = creat(stdErrPath, 0644);
+      int fdError = getFileDescriptor(stdErrPath, O_TRUNC | O_CREAT | O_WRONLY);
       if (fdError < 0)
       {
        return -1;
@@ -69,7 +69,7 @@ int executeBin(char *stdoutPath,char *stdErrPath,char *stdOutAppendPath, char *s
 
     if(appendStdOut)
     {
-      int fdOut = open(stdOutAppendPath, O_APPEND | O_CREAT | O_WRONLY, 0644);
+      int fdOut = getFileDescriptor(stdOutAppendPath, O_APPEND | O_CREAT | O_WRONLY);
       if (fdOut < 0)
       {
         return -1;
@@ -81,7 +81,7 @@ int executeBin(char *stdoutPath,char *stdErrPath,char *stdOutAppendPath, char *s
 
     if(appendStdErr)
     {
-      int fdOut = open(stdErrAppendPath, O_APPEND | O_CREAT | O_WRONLY, 0644);
+      int fdOut = getFileDescriptor(stdErrAppendPath, O_APPEND | O_CREAT | O_WRONLY);
       if (fdOut < 0)
       {
         return -1;

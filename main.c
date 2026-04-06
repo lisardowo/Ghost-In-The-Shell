@@ -9,6 +9,7 @@
 #include "inputManager.h"
 #include "getHistory.h"
 #include "utils.h"
+#include "builtIn.h"
 
 void createPrompt();
 void REPL();
@@ -49,6 +50,9 @@ void REPL()
     char *stderrPath = NULL;
     char *stdoutAppendPath = NULL;
     char *stderrAppendPath = NULL;
+
+    int andSegment = 0;
+    int andPosition = 0;
     //actuall terminal stuff
     readLineTab(prompt, &commandsList, userInput, sizeof(userInput), &historyCount, historyBuffer);
     //manage input
@@ -67,9 +71,7 @@ void REPL()
     }
 
 
-int commandCount = 0;
-int andSegment = 0;
-int andPosition = 0;
+
 //it was efectively erased lol
   for(int i = 0 ; argv[i] != NULL ; i++)
   {
@@ -279,24 +281,31 @@ int andPosition = 0;
     {
       if(!redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
       {
-      if (current[1] == NULL)
-      {
-        printf("Usage : type <command>\n") ;
-        lastStatus = 1;
+        type(current, redirectedstdout, redirectedstderr, appendStdOut, appendStdErr, stdoutPath, stderrPath, stdoutAppendPath, stderrAppendPath) ;
       }
-      else if((!strcmp("echo", current[1]) || !strcmp("exit", current[1]) ||
+      else
+      {//TODO THIS IS GON BE UGGLY SORRY -> turn this into a function
+          if(stdoutPath)
+          {
+            int fileDescriptor = getFileDescriptor(stdoutPath , O_TRUNC | O_CREAT | O_WRONLY);
+             if (current[1] == NULL)
+              {
+                dprintf("Usage : type <command>\n") ;
+                lastStatus = 1;
+              }
+              else if((!strcmp("echo", current[1]) || !strcmp("exit", current[1]) ||
              !strcmp("type", current[1]) || !strcmp("pwd", current[1]) ||
              !strcmp("cd", current[1]) || !strcmp("history", current[1])) && !redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
-      {
-        printf("%s is a shell builtin\n", current[1]);
-        lastStatus = 0;
-      }
+             {
+             dprintf("%s is a shell builtin\n", current[1]);
+             lastStatus = 0;
+             }
       else
       {
         char *path = getPath(current[1]);
         if (path != NULL)
         {
-          printf("%s is %s\n", current[1], path);
+          dprintf("%s is %s\n", current[1], path);
           lastStatus = 0;
         }
         else
@@ -305,10 +314,24 @@ int andPosition = 0;
           lastStatus = 1;
         }
         }
-      }
-      else
-      {
+          }
+          
+          if(stderrPath)
+          {
+            int fileDescriptor = getFileDescriptor(stderrPath, O_TRUNC | O_CREAT | O_WRONLY);
+            
+            lastStatus = 1;
+          }
 
+          if(appendStdOut)
+          {
+            int fileDescriptor = getFileDescriptor(appendStdOut, O_APPEND | O_CREAT | O_WRONLY);
+          }
+
+          if(appendStdErr)
+          {
+            int fileDescriptor = getFileDescriptor(appendStdErr, O_APPEND | O_CREAT | O_WRONLY);
+          }
       }
     }
 

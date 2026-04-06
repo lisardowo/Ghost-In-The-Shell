@@ -1,5 +1,6 @@
 
 #include "getHistory.h"
+#include "utils.h"
 
 void addHistory(char *command, int *historyCount, char *historyBuffer[])
 {
@@ -25,7 +26,7 @@ void addHistory(char *command, int *historyCount, char *historyBuffer[])
 void dumpHistory(char *historyBuffer[])
 {
 
-    int historyFd = open("historyFile.txt", O_CREAT | O_TRUNC | O_WRONLY ,0644);
+    int historyFd = getFileDescriptor("historyFile.txt", O_CREAT | O_TRUNC | O_WRONLY);
     
     for(int i = 0 ; historyBuffer[i] != NULL ; i++)
     {

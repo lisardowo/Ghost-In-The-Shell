@@ -1,4 +1,5 @@
 
+#include <fcntl.h>
 #include "utils.h"
 
 extern char prompt[1024];
@@ -40,9 +41,9 @@ bool isOperator(char *token)
 
 }
 
-int getFileDescriptor(int descriptorTarget)
+int getFileDescriptor(const char *descriptorTarget, int flags)
 {
-  int fileDescriptor = creat(descriptorTarget, 0644);
+  int fileDescriptor = open(descriptorTarget, flags,0644);
 
   return fileDescriptor;
 }

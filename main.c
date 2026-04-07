@@ -17,6 +17,14 @@ char *historyBuffer[10000];
 int historyCount;
 char prompt[1024];
 
+typedef enum
+{
+  NONE,
+  PIPE,
+  AND,
+  OR
+}  segmentType;
+
 int main()
 {
   
@@ -30,7 +38,7 @@ int main()
 
 void REPL()
 {
-  createPrompt();
+  
   availableCommands commandsList;
   fillCommands(&commandsList);
   getHistory(&historyCount, historyBuffer);
@@ -38,10 +46,11 @@ void REPL()
   while (true)
   {
 
-
+    createPrompt();
     //set up
     memset(argv,0,sizeof(argv));
     int argumentCount = 0;
+
     bool redirectedstdout = false;
     bool redirectedstderr = false;
     bool appendStdOut = false;
@@ -51,8 +60,17 @@ void REPL()
     char *stdoutAppendPath = NULL;
     char *stderrAppendPath = NULL;
 
-    int andSegment = 0;
-    int andPosition = 0;
+    int segment = 0;
+    int position = 0;
+    int pipePosition = 0;
+
+    char *pipelines[100][100][100];
+    int pipelineSegment[100];
+    segmentType pipeLineConditionals[100];
+
+    int pipelineCount = 0;
+    int commandInScope = 0;
+
     //actuall terminal stuff
     readLineTab(prompt, &commandsList, userInput, sizeof(userInput), &historyCount, historyBuffer);
     //manage input
@@ -61,8 +79,9 @@ void REPL()
     argumentCounter(userInput, &argumentCount);
     argumentExtractor(userInput, argumentCount);
 
-    char *segments[64][100];
-
+    char *segments[100][100];
+    
+    segmentType typeOfSegment[100];
 
     
     if (argv[0] == NULL)
@@ -71,8 +90,6 @@ void REPL()
     }
 
 
-
-//it was efectively erased lol
   for(int i = 0 ; argv[i] != NULL ; i++)
   {
     //echo  >   eas 2>  ead
@@ -171,27 +188,101 @@ void REPL()
                  
         }
 
-        if (andPosition == 0 )
+        if (position == 0 )
         {
           printf("Syntax error near unexpected token '&&'\n");
           break;
         }
 
-        segments[andSegment][andPosition] = NULL;
-        andSegment ++;
-        andPosition = 0;
+
+        segments[segment][position] = NULL;
+        typeOfSegment[segment] = AND;
+        segment ++;
+        position = 0;
         
         continue;
 
       }
-  segments[andSegment][andPosition++] = argv[i];
+
+      else if (strcmp(argv[i], "||") == 0)
+      {
+        if (argv[i + 1] == NULL)
+        {
+          printf("Esto deberia dejar escribir en multiples lineas\n");
+          break;
+                 
+        }
+
+        if (position == 0 )
+        {
+          printf("Syntax error near unexpected token '||'\n");
+          break;
+        }
+
+        segments[segment][position] = NULL;
+        typeOfSegment[segment] = OR;
+        segment ++;
+        position = 0;
+        
+        continue;
+
+      }
+
+      else if (strcmp(argv[i], "|") == 0)
+      {
+        if (argv[i + 1] == NULL)
+        {
+          printf("Esto deberia dejar escribir en multiples lineas\n");
+          break;
+                 
+        }
+
+        if (position == 0 )
+        {
+          printf("Syntax error near unexpected token '|'\n");
+          break;
+        }
+
+        segments[segment][position] = NULL;
+        typeOfSegment[segment] = PIPE;
+        segment ++;
+        position = 0;
+        
+        continue;
+
+      }
+
+
+  segments[segment][position++] = argv[i];
 
 }
 
 //for (int i = 0 ; commandToken[i] != NULL ; i++ ) printf("%s", commandToken[i]);;
-  segments[andSegment][andPosition] = NULL;
-  int segmentCount = andSegment + 1;
+  segments[segment][position] = NULL;
+  typeOfSegment[segment] = NONE;
 
+  int segmentCount = segment + 1;
+
+
+  for (int i = 0 ; i < segmentCount ; i++)
+  {
+    int currentArgument = 0;
+    while (segments[i][currentArgument] != NULL)
+    {
+      pipelines[pipelineCount][commandInScope][currentArgument] = segments[i][currentArgument];
+      currentArgument++;
+    }
+    pipelines[pipelineCount][commandInScope][currentArgument] = NULL;
+    commandInScope++;
+
+    if(typeOfSegment[i] == PIPE)
+    {
+      continue;
+    }
+    pipeLineConditionals[pipelineCount] = typeOfSegment[i];
+    pipelineCount++;
+    commandInScope = 0;
+  }
 
   int lastStatus = 0 ;
 
@@ -218,12 +309,7 @@ void REPL()
 
     else if(strcmp("echo", current[0]) == 0 && !redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
     {
-      for (int i = 1 ; current[i] != NULL ; i++)
-      {
-        printf("%s", current[i]);
-      }
-      printf("\n");
-      lastStatus = 0;
+        lastStatus = echo(current);
     }
 
 
@@ -231,58 +317,28 @@ void REPL()
     else if(strcmp("cd", current[0]) == 0 && !redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
     {
       
-      if (current[1] == NULL || strcmp ("~", current[1]) == 0 )
-      {
-        char *homePath = getenv("HOME");
-        lastStatus = (chdir(homePath) ) ? 0 : 1;
-      }
-      else
-      {
-        if (chdir(current[1]) != 0)
-        {
-          printf("%s: no such file or directory : \"%s\" ", current[0], current[1]);
-          lastStatus = 1;
-        }
-        else
-        {
-          lastStatus = 9;
-        }
-      }
+     lastStatus = cd(current);
 
     }
 
 
     else if(strcmp("pwd", current[0]) == 0 && !redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
     {
-      char cwd[1024];
-      if (getcwd(cwd, sizeof(cwd)))
-      {
-        printf("%s\n",cwd);
-        lastStatus = 0;
-      }
-      else
-      {
-        lastStatus = 1;
-      }
+      lastStatus = pwd();
     }
 
 
     else if(strcmp("history", current[0]) == 0 && !redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
     {
-      for(int i = 0 ; historyBuffer[i] != NULL ; i++)
-      {
-        printf("%d %s\n", i + 1, historyBuffer[i]);
-      }
-      lastStatus = 0;
+
+      lastStatus = history(historyBuffer);
     }
 
 
     else if(strcmp("type", current[0]) == 0 )
     {
       
-      type(current, redirectedstdout, redirectedstderr, appendStdOut, appendStdErr, stdoutPath, stderrPath, stdoutAppendPath, stderrAppendPath) ;
-      
-
+      lastStatus = type(current, redirectedstdout, redirectedstderr, appendStdOut, appendStdErr, stdoutPath, stderrPath, stdoutAppendPath, stderrAppendPath) ;
     
     }
 

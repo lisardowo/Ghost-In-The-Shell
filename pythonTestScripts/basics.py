@@ -5,21 +5,86 @@ type ls
 comando_invalido_xyz
 exit 0"""
 
-import subprocess
+from doctest import master
+import os
+import pty
+import re
 import json
-import subprocess
+import time
+import select
 from pathlib import Path
 
-with open("commands.json") as comandsFile:
-    data = json.load(comandsFile)
+
+
+def deleteAnsi(text):
+    return re.sub(r"\x1b\[[0-9;?]*[ -/]*[@-~]", "", text)
+
+def read(masterFileDescriptor, timeout):
+    
+    chunks = []
+    end = time.time() + timeout
+
+    while time.time() < end:
+        remaining = max(0.0, end - time.time())
+        r, _, _ = select.select([masterFileDescriptor], [], [], remaining)
+        if not r:
+            break
+        try:
+            data = os.read(masterFileDescriptor, 4096) 
+        except OSError:
+            break
+        if not data:
+            break
+        chunks.append(data.decode("utf-8", errors="replace"))
+    
+    return "".join(chunks)
+
+def writeToTerminal(masterFileDescriptor, string):
+    os.write(masterFileDescriptor, string.encode("utf-8"))
+
+def runShell(shell_path: Path, commands: list[str]) -> tuple[str, int]:
+    pid, master_fd = pty.fork()
+
+    if pid == 0:
+        
+        os.execv(str(shell_path), [str(shell_path)])
+
+    output = []
+    try:
+    
+        output.append(read(master_fd, timeout=0.5))
+
+        for cmd in commands:
+            writeToTerminal(master_fd, cmd + "\r")
+            output.append(read(master_fd, timeout=0.4))
+ 
+        writeToTerminal(master_fd, "exit\r")
+        output.append(read(master_fd, timeout=0.5))
+
+    finally:
+        try:
+            os.close(master_fd)
+        except OSError:
+            pass
+
+        _, status = os.waitpid(pid, 0)
+
+   
+    exit_code = os.waitstatus_to_exitcode(status)
+    return "".join(output), exit_code
+
+script_dir = Path(__file__).resolve().parent
+shell_path = script_dir.parent / "shell"
+commands_path = script_dir / "commands.json"
+
+with open(commands_path, "r", encoding="utf-8") as f:
+    data = json.load(f)
 
 commands = data["stage1"]["commands"]
 
-scriptInput = "\n".join(commands + ["exit"]) + "\n" #TODO i can probably  delete the hardocded exit by ensuring to run the exit command in each stage at the end
-shellPath = Path(__file__).resolve().parent.parent / "shell"
+raw_out, code = runShell(shell_path, commands)
 
-testResults = subprocess.run([str(shellPath)], input = scriptInput, capture_output = True, text = True)
+print("==== OUTPUT ====")
+print(deleteAnsi(raw_out))
 
-print(f"stdOut : {testResults.stdout}")
-print(f"stdErr : {testResults.stderr}")
-print(f"Exit code : {testResults.returncode}")
+print(f"\nExit code: {code}")

@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "pipeline.h"
 #include "lineEdition.h"
 #include "binariesManager.h"
 #include "arguments.h"
@@ -62,7 +63,6 @@ void REPL()
 
     int segment = 0;
     int position = 0;
-    int pipePosition = 0;
 
     char *pipelines[100][100][100];
     int pipelineSegment[100];
@@ -279,74 +279,94 @@ void REPL()
     {
       continue;
     }
+    pipelineSegment[pipelineCount] = commandInScope;
     pipeLineConditionals[pipelineCount] = typeOfSegment[i];
     pipelineCount++;
     commandInScope = 0;
   }
 
   int lastStatus = 0 ;
+  segmentType prevConditional = NONE;
 
-  for (int v = 0 ; v < segmentCount ; v++)
+  for (int v = 0 ; v < pipelineCount ; v++)
   {
-    char **current = segments[v];
-    if (current[0] == NULL)
-    {
-      lastStatus = 1 ;
-      break ; 
-    }
-
-    if(v > 0 && lastStatus != 0)
-    {
-      break;
-    }
-
-    if(strcmp("exit", current[0]) == 0)
-    {
-        dumpHistory(historyBuffer);
-        return;
-    }
-
-
-    else if(strcmp("echo", current[0]) == 0 && !redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
-    {
-        lastStatus = echo(current);
-    }
-
-
-
-    else if(strcmp("cd", current[0]) == 0 && !redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
-    {
-      
-     lastStatus = cd(current);
-
-    }
-
-
-    else if(strcmp("pwd", current[0]) == 0 && !redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
-    {
-      lastStatus = pwd();
-    }
-
-
-    else if(strcmp("history", current[0]) == 0 && !redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
-    {
-
-      lastStatus = history(historyBuffer);
-    }
-
-
-    else if(strcmp("type", current[0]) == 0 )
-    {
-      
-      lastStatus = type(current, redirectedstdout, redirectedstderr, appendStdOut, appendStdErr, stdoutPath, stderrPath, stdoutAppendPath, stderrAppendPath) ;
     
+    if (v > 0)
+    {
+      if (prevConditional == AND && lastStatus == 0)
+      {
+        prevConditional = pipeLineConditionals[v];
+        continue;
+      }
+      if (prevConditional == OR && lastStatus == 0)
+      {
+        prevConditional = pipeLineConditionals[v];
+        continue;
+      }
     }
 
+    if (pipelineSegment[v] > 1)
+    {
+      lastStatus = runPipeline(pipelines[v], pipelineSegment[v], historyBuffer , redirectedstdout, redirectedstderr, appendStdOut, appendStdErr, stdoutPath, stderrPath, stdoutAppendPath , stderrAppendPath);
+    }
     else
     {
-      lastStatus = executeBin(stdoutPath, stderrPath, stdoutAppendPath, stderrAppendPath, redirectedstdout, redirectedstderr, appendStdOut, appendStdErr, current);
-    }
+      char **current = pipelines[v][0];
 
+      if(current[0] == NULL)
+      {
+        lastStatus = 1;
+      }
+
+      if(strcmp("exit", current[0]) == 0)
+      {
+        dumpHistory(historyBuffer);
+        return;
+      }
+
+
+      else if(strcmp("echo", current[0]) == 0 && !redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
+      {
+        lastStatus = echo(current, redirectedstdout, appendStdOut , stdoutPath, stdoutAppendPath);
+      }
+
+      else if(strcmp("cd", current[0]) == 0 && !redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
+      {
+      
+      lastStatus = cd(current, redirectedstdout, appendStdOut , stdoutPath, stdoutAppendPath);
+
+      }
+
+
+      else if(strcmp("pwd", current[0]) == 0 && !redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
+      {
+
+        lastStatus = pwd(redirectedstdout, appendStdOut , stdoutPath, stdoutAppendPath);
+    
+      }
+
+
+      else if(strcmp("history", current[0]) == 0 && !redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
+      {
+       
+        lastStatus = history(historyBuffer, redirectedstdout, appendStdOut , stdoutPath, stdoutAppendPath);
+      
+      }
+
+      else if(strcmp("type", current[0]) == 0 )
+      {      
+       
+        lastStatus = type(current, redirectedstdout, redirectedstderr, appendStdOut, appendStdErr, stdoutPath, stderrPath, stdoutAppendPath, stderrAppendPath) ;
+    
+      }
+
+      else
+      {
+        lastStatus = executeBin(stdoutPath, stderrPath, stdoutAppendPath, stderrAppendPath, redirectedstdout, redirectedstderr, appendStdOut, appendStdErr, current);
+      }
+    }
+   
+    prevConditional = pipeLineConditionals[v];
 
   }
 

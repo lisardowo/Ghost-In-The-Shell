@@ -121,7 +121,7 @@ int history(char *historyBuffer[], bool redirectedstdout, bool appendStdOut,  ch
 {
     if (redirectedstdout)
     {
-        int fd = getFileDescriptor(redirectedstdout , O_CREAT | O_WRONLY | O_TRUNC);
+        int fd = getFileDescriptor(stdoutPath , O_CREAT | O_WRONLY | O_TRUNC);
         for(int i = 0 ; historyBuffer[i] != NULL ; i++)
         {
             dprintf(fd, "%d %s\n", i + 1, historyBuffer[i]);
@@ -152,7 +152,7 @@ int pwd( bool redirectedstdout, bool appendStdOut, char *stdoutPath,  char *stdo
       {
         if (redirectedstdout)
         {
-            int fd = getFileDescriptor(stdoutAppendPath, O_CREAT | O_TRUNC | O_WRONLY);
+            int fd = getFileDescriptor(stdoutPath, O_CREAT | O_TRUNC | O_WRONLY);
             dprintf(fd, "%s\n",cwd);
             return 0;
         }
@@ -186,7 +186,7 @@ int cd(char **current, bool redirectedstderr, bool appendStdErr, char *stderrPat
           if (redirectedstderr)
           {
             int fd = getFileDescriptor(stderrPath, O_CREAT | O_WRONLY | O_TRUNC);
-            dprintf("%s: no such file or directory : \"%s\" \n", current[0], current[1]);
+            dprintf(fd, "%s: no such file or directory : \"%s\" \n", current[0], current[1]);
             return 1;
 
           } 
@@ -209,7 +209,7 @@ int cd(char **current, bool redirectedstderr, bool appendStdErr, char *stderrPat
       }
 }
 
-int echo(char **current, bool redirectedstdout, bool redirectedstderr, bool appendStdOut, bool appendStdErr, char *stdoutPath, char *stderrPath, char *stdoutAppendPath, char *stderrAppendPath)
+int echo(char **current, bool redirectedstdout,  bool appendStdOut, char *stdoutPath,  char *stdoutAppendPath)
 {
     if (redirectedstdout)
     {
@@ -226,7 +226,7 @@ int echo(char **current, bool redirectedstdout, bool redirectedstderr, bool appe
     if (appendStdOut)
     {
     
-        int fd = getFileDescriptor(appendStdOut , O_WRONLY | O_APPEND | O_CREAT);
+        int fd = getFileDescriptor(stdoutAppendPath , O_WRONLY | O_APPEND | O_CREAT);
         for (int i = 1 ; current[i] != NULL ; i++)
         {
             dprintf(fd,"%s ", current[i]);

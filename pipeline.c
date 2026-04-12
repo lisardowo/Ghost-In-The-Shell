@@ -1,10 +1,5 @@
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <fcntl.h>
-#include <stdbool.h>
-#include "builtIn.h"
-#include "utils.h"
-#include "binariesManager.h"
+
+#include "pipeline.h"
 
 int reddirectInChild(bool redirectedStdOut, bool redirectedStdErr, bool appendStdOuut, bool appendStdErr,char *stdOutPath, char *stdErrPath, char *stdoutAppendPath, char *stderrAppendPath)
 {
@@ -54,19 +49,19 @@ int runBuiltin(char **current, char **historyBuffer,bool redirectedStdOut, bool 
 {
     if (strcmp("echo", current[0]) == 0 )
     {
-        return echo(current);
+        return echo(current, redirectedStdOut,  appendStdOuut, stdOutPath, stdoutAppendPath);
     }
     if (strcmp("cd", current[0]) == 0 )
     {
-        return cd(current);
+        return cd(current, redirectedStdErr,  appendStdErr, stdErrPath, stderrAppendPath);
     }
     if (strcmp("pwd", current[0]) == 0 )
     {
-        return pwd();
+        return pwd(redirectedStdOut,  appendStdOuut, stdOutPath, stdoutAppendPath);
     }
     if (strcmp("history", current[0]) == 0 )
     {
-        return history(historyBuffer);
+        return history(historyBuffer, redirectedStdOut,  appendStdOuut, stdOutPath, stdoutAppendPath);
     }
     if (strcmp("type", current[0]) == 0 )
     {
@@ -75,23 +70,23 @@ int runBuiltin(char **current, char **historyBuffer,bool redirectedStdOut, bool 
   return 1 ;
 }
 
-int runBuiltinChild(char **current, char **historyBuffer)
+int runBuiltinChild(char **current, char **historyBuffer,bool redirectedStdOut, bool redirectedStdErr, bool appendStdOuut, bool appendStdErr,char *stdOutPath, char *stdErrPath, char *stdoutAppendPath, char *stderrAppendPath)
 {
     if(strcmp("echo", current[0]) == 0)
     {
-        return echo(current);
+        return echo(current, redirectedStdOut,  appendStdOuut, stdOutPath, stdoutAppendPath);
     }
     if(strcmp("pwd", current[0]) == 0)
     {
-        return pwd();
+        return pwd(redirectedStdOut,  appendStdOuut, stdOutPath, stdoutAppendPath);
     }
     if(strcmp("history", current[0]) == 0)
     {
-        return history(historyBuffer);
+        return history(historyBuffer, redirectedStdOut,  appendStdOuut, stdOutPath, stdoutAppendPath);
     }
     if(strcmp("type", current[0]) == 0)
     {
-        return type(current, false, false, false, false, NULL, NULL, NULL, NULL);
+        return type(current, redirectedStdOut , redirectedStdErr, appendStdOuut, appendStdErr, stdOutPath, stdErrPath, stdoutAppendPath, stderrAppendPath);
     }
     if(strcmp("cd", current[0]) == 0 || strcmp("exit", current[0]) == 0)
     {
@@ -101,14 +96,134 @@ int runBuiltinChild(char **current, char **historyBuffer)
     return 1;
 }
 
-int externalInChild(char **current, char *stderr)
+int externalInChild(char **current, bool redirectedStdErr, bool appendStdErr, char *stdErrPath, char* stdErrAppendPath)
 {
     char *binPath = getPath(current[0]);
     if (binPath == NULL)
     {
-        fprintf(stderr, "%s command not found\n", current[0] ); //TODO have a feeling that this snippet gon be bugged
+
+        if(redirectedStdErr)
+        {
+            int fd = getFileDescriptor(stdErrPath, O_TRUNC | O_CREAT | O_WRONLY);
+            dprintf(fd, "%s command not found\n", current[0] ); //TODO have a feeling that this snippet gon be bugged
+            close(fd);
+            return 1;
+        }
+
+        if(appendStdErr)
+        {
+            int fd = getFileDescriptor(stdErrAppendPath, O_APPEND | O_CREAT | O_WRONLY);
+            dprintf(fd, "%s command not found\n", current[0] ); //TODO have a feeling that this snippet gon be bugged
+            close(fd);
+            return 1;
+        }
+
+        dprintf(STDERR_FILENO, "%s command not found\n", current[0] ); //TODO have a feeling that this snippet gon be bugged
         return 1;
     }
     execv(binPath, current);
     return 0;
+}
+
+int runPipeline(char *commands[100][100], int commandCount ,char **historyBuffer, bool redirectedstdout, bool redirectedstderr, bool appendStdOut, bool appendStdErr, char *stdoutPath, char *stderrPath, char *stdoutAppendPath, char *stderrAppendPath)
+{
+    int prevFd = -1;
+    pid_t pids[100];
+    int pidCount = 0;
+    pid_t lastPid = -1;
+
+    for (int i = 0 ; i < commandCount ; i++)
+    {
+        int fds[2] = {initializerValues , initializerValues};
+        bool isLast = (i == commandCount - 1);
+        
+        if (!isLast && pipe(fds) == -1)
+        {
+            return 1;
+        }
+
+        pid_t pid = fork();
+        if(pid == -1 )
+        {
+            return 1;
+        }
+
+        if (pid == 0)
+        {
+            if (prevFd != -1)
+            {
+                dup2(prevFd, STDIN_FILENO);
+                close(prevFd);
+            }
+
+            if(!isLast)
+            {
+                dup2(fds[1], STDOUT_FILENO);
+                close(fds[0]);
+                close(fds[1]);
+            }
+            else 
+            { 
+                if (reddirectInChild(redirectedstdout, redirectedstderr, appendStdOut, appendStdErr, stdoutPath, stderrPath, stdoutAppendPath, stderrAppendPath))
+                {
+                    _exit(1);
+                }
+            }
+       /*     if (prevFd != -1) 
+            {
+                close(prevFd);
+            }
+            if (fds[0] != -1)
+            {
+                close(fds[0]);
+            }
+            if (fds[1] != -1) 
+            {
+                close(fds[1]);
+            }*/
+
+            int status = runBuiltinChild(commands[i],historyBuffer, redirectedstdout, redirectedstderr, appendStdOut, appendStdErr, stdoutPath, stderrPath, stdoutAppendPath, stderrAppendPath);
+
+            if (status == 1)
+            {
+                status = externalInChild(commands[i], redirectedstderr, appendStdErr, stderrPath, stderrAppendPath);
+                _exit(status);
+            }
+        }
+
+        pids[pidCount++] = pid;
+        lastPid = pid;
+
+        if(!isLast)
+        {
+            close(fds[1]);
+            
+        }
+
+        if (prevFd != -1)
+        { 
+            close(prevFd);
+        }
+        
+        if (!isLast) 
+        {
+            prevFd = fds[0];
+        }
+        
+
+    }    
+
+    int lastStatus = 0 ;
+
+    for (int  i = 0 ; i < pidCount ; i++)
+    {
+        int wstatus = 0;
+        waitpid(pids[i], &wstatus, 0);
+        if (pids[i] == lastPid)
+        {
+            if (WIFEXITED(wstatus)) lastStatus = WEXITSTATUS(wstatus);
+            else lastStatus = 1;
+        }
+    }
+    return lastStatus;
 }

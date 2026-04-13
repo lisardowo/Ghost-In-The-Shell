@@ -11,6 +11,8 @@
 #include "getHistory.h"
 #include "utils.h"
 #include "builtIn.h"
+#include "signalsManager.h"
+#include "expansion.h"
 
 void createPrompt();
 void REPL();
@@ -31,6 +33,8 @@ int main()
   
   setbuf(stdout, NULL);
   
+  ignoreSignalsInParent();
+
   REPL();
 
   return 0;
@@ -79,8 +83,9 @@ void REPL()
     argumentCounter(userInput, &argumentCount);
     argumentExtractor(userInput, argumentCount);
 
+    expandArguments(argv);
+
     char *segments[100][100];
-    
     segmentType typeOfSegment[100];
 
     

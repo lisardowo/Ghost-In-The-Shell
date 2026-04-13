@@ -1,4 +1,5 @@
 #include "pipeline.h"
+#include "signalsManager.h"
 
 int reddirectInChild(bool redirectedStdOut, bool redirectedStdErr, bool appendStdOuut, bool appendStdErr,char *stdOutPath, char *stdErrPath, char *stdoutAppendPath, char *stderrAppendPath)
 {
@@ -153,6 +154,8 @@ int runPipeline(char *commands[100][100], int commandCount, char **historyBuffer
 
         if (pid == 0)
         {
+
+            restoreSignalsInChild();
         
             if (prev_pipe_read_end != -1)
             {

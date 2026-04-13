@@ -1,6 +1,6 @@
 #include "binariesManager.h"
 #include "utils.h"
-
+#include "signalsManager.h"
 
 
 
@@ -17,6 +17,9 @@ int executeBin(char *stdoutPath,char *stdErrPath,char *stdOutAppendPath, char *s
 
   if (fork() == 0)
   {
+
+    restoreSignalsInChild();
+
     if(redirectedstdout)
     {
       

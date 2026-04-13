@@ -63,6 +63,8 @@ Modules:
 - `inputManager.c` depends on: `inputManager.h` //TODO Prolly will remove inputManager in future versions
 - `Completition.c` depends on: `completition.h`
 - `quotationParser.c` depends on: `quotationParser.h`
+- `utils.c` depends on: `quotationParser.h`
+- `getHistory.c` depends on: `quotationParser.h`
 
 
 ## 3. Public API (headers)
@@ -147,6 +149,8 @@ This section lists all functions declared in headers (expected API surface).
 - `void spacesInQuotes(char *userInput);`
   - replace quoted spaces for an arbitary value in arguments so it can be counted as one .
 
+###
+
 ## 4. Functional Behavior Summary
 
 - readLineTab gets the input from user instantaneously so autocomplete can be triggered.
@@ -192,7 +196,7 @@ this section explains how to add new features:
   - Update documentation
     
 
-### 5.4 test you can do when tweaking the program
+### 5.4 tests you can do when tweaking the program
 
   - Empty Input does not crash
   - Quoted arguments dont produce any unexpected behaviour
@@ -206,10 +210,8 @@ this section explains how to add new features:
 
 ## 6 Current Known Gaps
 
-  1. History is runtime only (not persistent across sessions)
   2. Current line editor does not support advanced editing
   3. Autocompletion is first token only, does not have any class of argument-aware/flags completion
-  4. Redirection parsing not support complex combinations or multpile redirections in the same command
   5. no config system
   6. some buffers are fixed size
   7. Error messages even tho are functional, some outpus are inconsistent in style and detail

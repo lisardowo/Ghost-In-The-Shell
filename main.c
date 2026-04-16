@@ -81,7 +81,7 @@ void REPL()
     //manage input
     sanitizeInput(userInput);
 
-    if(!expandHistory(userInput, historyCount, historyBuffer))
+    if(!expandHistory(userInput, sizeof(userInput), historyCount, historyBuffer))
     {
       continue;
     }

@@ -88,11 +88,13 @@ void getHistory(int *historyCount, char *historyBuffer[])
     
 }
 
-bool expandHistory(char userInput[], int historyCount, char *historyBuffer[])
+bool expandHistory(char userInput[], size_t userInputSize, int historyCount, char *historyBuffer[])
 {
     char tempBuffer[10000];
     int tempPosition = 0;
     bool expanded = false;
+
+    
 
     //char *currentToken = userInput;
 
@@ -103,7 +105,7 @@ bool expandHistory(char userInput[], int historyCount, char *historyBuffer[])
             char *expansion = NULL;
             int skipChars = 0;
 
-            if (userInput[i + 1] == '!' && (userInput[i + 2 ] != '\0' || userInput[i + 2] == ' '))
+            if (userInput[i + 1] == '!' && (userInput[i + 2] == '\0' || userInput[i + 2] == ' '))
             {
                 if (historyCount > 0)
                 {
@@ -175,7 +177,7 @@ bool expandHistory(char userInput[], int historyCount, char *historyBuffer[])
 
     if(expanded)
     {
-        snprintf(userInput, sizeof(userInput), "%s", tempBuffer);
+        snprintf(userInput, userInputSize, "%s", tempBuffer);
         printf("%s\n", userInput);
     }
 

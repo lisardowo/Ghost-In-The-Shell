@@ -20,7 +20,11 @@ if __name__ == "__main__":
 
     commands = data["stage9"]["commands"]
     expectedOutput = data["stage9"]["expectedOut"]
-
+    
+    history_path = script_dir / "historyFile.txt"
+    print("cleaning history")
+    
+    history_path.write_text("", encoding="utf-8")
     raw_out, code = writingToterminal.runShell(shell_path, commands)
 
     print("==== OUTPUT ====")

@@ -88,23 +88,98 @@ void getHistory(int *historyCount, char *historyBuffer[])
     
 }
 
-bool expandHistory(char *userInput[], int historyCount, char *historyBuffer[])
+bool expandHistory(char userInput[], int historyCount, char *historyBuffer[])
 {
-     for (int v = 0 ; userInput[v] != NULL ; v++)
+    char tempBuffer[10000];
+    int tempPosition = 0;
+    bool expanded = false;
+
+    //char *currentToken = userInput;
+
+    for (int i = 0 ; userInput[i] != '\0' ; i++)
     {
-        if(userInput[v] == '!')
+        if(userInput[i] == '!' && userInput[i + 1] != '\0' && userInput[i + 1] != ' ')
         {
-            printf("yup\n");
+            char *expansion = NULL;
+            int skipChars = 0;
+
+            if (userInput[i + 1] == '!' && (userInput[i + 2 ] != '\0' || userInput[i + 2] == ' '))
+            {
+                if (historyCount > 0)
+                {
+                    expansion = historyBuffer[historyCount - 1];
+                    skipChars = 1 ;
+                }
+                else
+                {
+                    printf("shell: !!: no elements in hisroty\n");
+                    return false;
+                }
+            }
+          
+            else if(userInput[i + 1] >= '1' && userInput[i + 1] <= '9' )
+            {
+                int v = i + 1;
+                char numStr[20];
+                int numPos = 0;
+
+                while(userInput[v] >= '0' && userInput[v] <= '9' && numPos < (int)sizeof(numStr) - 1)
+                {
+                    numStr[numPos++] = userInput[v++];
+                }
+                numStr[numPos] = '\0';
+
+                int targetIndex = atoi(numStr);
+
+                if(targetIndex > 0 && targetIndex <= historyCount)
+                {
+                    expansion = historyBuffer[targetIndex - 1];
+                    skipChars = numPos;
+                }
+                else
+                {
+                    printf("shell: !%s: not found\n", numStr);
+                    return false;
+                }
+            }
+            if (expansion != NULL)
+            {
+                for (int k = 0; expansion[k] ; k++)
+                {
+                    if (tempPosition < ((int)sizeof(tempBuffer) - 1))
+                    {
+                        tempBuffer[tempPosition++] = expansion[k];
+                    }
+                }
+                expanded = true;
+                i += skipChars;
+            }
+            else
+            {
+                if (tempPosition < ((int)sizeof(tempBuffer) - 1))
+                {
+                    tempBuffer[tempPosition++] = userInput[i];
+                }
+            }
+        }
+        else
+        {
+            if (tempPosition < (int)sizeof(tempBuffer))
+            {
+                tempBuffer[tempPosition++] = userInput[i];
+            }
         }
     }
 
-    for (int i = 0 ; userInput[i] != NULL ; i++){
-    char tempBuffer[10000];
-    int tempPosition = 0;
-    bool isExpandible = false;
-    char *currentToken = historyBuffer[i];
+    tempBuffer[tempPosition] = '\0';
 
-   
-}
+    if(expanded)
+    {
+        snprintf(userInput, sizeof(userInput), "%s", tempBuffer);
+        printf("%s\n", userInput);
+    }
+
+    return true;
+
 }
 

@@ -80,23 +80,27 @@ void REPL()
     readLineTab(prompt, &commandsList, userInput, sizeof(userInput), &historyCount, historyBuffer);
     //manage input
     sanitizeInput(userInput);
-    addHistory(userInput, &historyCount, historyBuffer);
-    argumentCounter(userInput, &argumentCount);
-    argumentExtractor(userInput, argumentCount);
 
-    expandArguments(argv);
-    expandGlobs(argv);
-    expandHistory(argv , historyCount, historyBuffer);
-
-    char *segments[100][100];
-    segmentType typeOfSegment[100];
-
-    
-    if (argv[0] == NULL)
+    if(!expandHistory(userInput, historyCount, historyBuffer))
     {
       continue;
     }
 
+    addHistory(userInput, &historyCount, historyBuffer);
+    argumentCounter(userInput, &argumentCount);
+    argumentExtractor(userInput, argumentCount);
+    
+
+    expandArguments(argv);
+    expandGlobs(argv);
+
+    char *segments[100][100];
+    segmentType typeOfSegment[100];
+
+    if (argv[0] == NULL)
+    {
+      continue;
+    }
 
   for(int i = 0 ; argv[i] != NULL ; i++)
   {
@@ -315,7 +319,7 @@ void REPL()
 
     if (pipelineSegment[v] > 1)
     {
-      lastStatus = runPipeline(pipelines[v], pipelineSegment[v], historyBuffer , redirectedstdout, redirectedstderr, appendStdOut, appendStdErr, stdoutPath, stderrPath, stdoutAppendPath , stderrAppendPath);
+      lastStatus = runPipeline(argv, pipelines[v], pipelineSegment[v], historyBuffer , redirectedstdout, redirectedstderr, appendStdOut, appendStdErr, stdoutPath, stderrPath, stdoutAppendPath , stderrAppendPath);
     }
     else
     {
@@ -333,12 +337,12 @@ void REPL()
       }
 
 
-      else if(strcmp("echo", current[0]) == 0 && !redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
+      else if(strcmp("echo", current[0]) == 0 )
       {
         lastStatus = echo(current, redirectedstdout, appendStdOut , stdoutPath, stdoutAppendPath);
       }
 
-      else if(strcmp("cd", current[0]) == 0 && !redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
+      else if(strcmp("cd", current[0]) == 0)
       {
       
       lastStatus = cd(current, redirectedstdout, appendStdOut , stdoutPath, stdoutAppendPath);
@@ -346,7 +350,7 @@ void REPL()
       }
 
 
-      else if(strcmp("pwd", current[0]) == 0 && !redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
+      else if(strcmp("pwd", current[0]) == 0 )
       {
 
         lastStatus = pwd(redirectedstdout, appendStdOut , stdoutPath, stdoutAppendPath);
@@ -354,10 +358,10 @@ void REPL()
       }
 
 
-      else if(strcmp("history", current[0]) == 0 && !redirectedstdout && !redirectedstderr && !appendStdErr && !appendStdOut)
+      else if(strcmp("history", current[0]) == 0 )
       {
        
-        lastStatus = history(historyBuffer, redirectedstdout, appendStdOut , stdoutPath, stdoutAppendPath);
+        lastStatus = history(argv, historyBuffer, redirectedstdout, appendStdOut , stdoutPath, stdoutAppendPath);
       
       }
 

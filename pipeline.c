@@ -45,7 +45,7 @@ int reddirectInChild(bool redirectedStdOut, bool redirectedStdErr, bool appendSt
     return 0;
 } 
 
-int runBuiltin(char **current, char **historyBuffer,bool redirectedStdOut, bool redirectedStdErr, bool appendStdOuut, bool appendStdErr,char *stdOutPath, char *stdErrPath, char *stdoutAppendPath, char *stderrAppendPath)
+int runBuiltin(char *argv[], char **current, char **historyBuffer,bool redirectedStdOut, bool redirectedStdErr, bool appendStdOuut, bool appendStdErr,char *stdOutPath, char *stdErrPath, char *stdoutAppendPath, char *stderrAppendPath)
 {
     if (strcmp("echo", current[0]) == 0 )
     {
@@ -61,7 +61,7 @@ int runBuiltin(char **current, char **historyBuffer,bool redirectedStdOut, bool 
     }
     if (strcmp("history", current[0]) == 0 )
     {
-        return history(historyBuffer, redirectedStdOut,  appendStdOuut, stdOutPath, stdoutAppendPath);
+        return history(argv, historyBuffer, redirectedStdOut,  appendStdOuut, stdOutPath, stdoutAppendPath);
     }
     if (strcmp("type", current[0]) == 0 )
     {
@@ -70,7 +70,7 @@ int runBuiltin(char **current, char **historyBuffer,bool redirectedStdOut, bool 
   return 1 ;
 }
 
-int runBuiltinChild(char **current, char **historyBuffer,bool redirectedStdOut, bool redirectedStdErr, bool appendStdOuut, bool appendStdErr,char *stdOutPath, char *stdErrPath, char *stdoutAppendPath, char *stderrAppendPath)
+int runBuiltinChild(char *argv[],char **current, char **historyBuffer,bool redirectedStdOut, bool redirectedStdErr, bool appendStdOuut, bool appendStdErr,char *stdOutPath, char *stdErrPath, char *stdoutAppendPath, char *stderrAppendPath)
 {
     if(strcmp("echo", current[0]) == 0)
     {
@@ -82,7 +82,7 @@ int runBuiltinChild(char **current, char **historyBuffer,bool redirectedStdOut, 
     }
     if(strcmp("history", current[0]) == 0)
     {
-        return history(historyBuffer, redirectedStdOut,  appendStdOuut, stdOutPath, stdoutAppendPath);
+        return history(argv, historyBuffer, redirectedStdOut,  appendStdOuut, stdOutPath, stdoutAppendPath);
     }
     if(strcmp("type", current[0]) == 0)
     {
@@ -127,7 +127,7 @@ int externalInChild(char **current, bool redirectedStdErr, bool appendStdErr, ch
     return 126;
 }
 
-int runPipeline(char *commands[100][100], int commandCount, char **historyBuffer, bool redirectedstdout, bool redirectedstderr, bool appendStdOut, bool appendStdErr, char *stdoutPath, char *stderrPath, char *stdoutAppendPath, char *stderrAppendPath)
+int runPipeline(char *argv[],char *commands[100][100], int commandCount, char **historyBuffer, bool redirectedstdout, bool redirectedstderr, bool appendStdOut, bool appendStdErr, char *stdoutPath, char *stderrPath, char *stdoutAppendPath, char *stderrAppendPath)
 {
     int prev_pipe_read_end = -1;
     pid_t pids[100];
@@ -179,7 +179,7 @@ int runPipeline(char *commands[100][100], int commandCount, char **historyBuffer
                 }
             }
             
-            int status = runBuiltinChild(commands[i], historyBuffer, redirectedstdout, redirectedstderr, appendStdOut, appendStdErr, stdoutPath, stderrPath, stdoutAppendPath, stderrAppendPath);
+            int status = runBuiltinChild(argv, commands[i], historyBuffer, redirectedstdout, redirectedstderr, appendStdOut, appendStdErr, stdoutPath, stderrPath, stdoutAppendPath, stderrAppendPath);
             if (status == 1)
             { 
                 status = externalInChild(commands[i], redirectedstderr, appendStdErr, stderrPath, stderrAppendPath);

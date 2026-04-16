@@ -117,12 +117,29 @@ int type(char **current, bool redirectedstdout, bool redirectedstderr, bool appe
     return 1; 
 }
 
-int history(char *historyBuffer[], bool redirectedstdout, bool appendStdOut,  char *stdoutPath, char *stdoutAppendPath)
+int history(char *argv[], char *historyBuffer[], bool redirectedstdout, bool appendStdOut,  char *stdoutPath, char *stdoutAppendPath)
 {
-    if (redirectedstdout)
+    int linesToDisplay = 0;
+    int start = 0 ;
+
+    while(historyBuffer[linesToDisplay] != NULL)
     {
-        int fd = getFileDescriptor(stdoutPath , O_CREAT | O_WRONLY | O_TRUNC);
-        for(int i = 0 ; historyBuffer[i] != NULL ; i++)
+        linesToDisplay++;
+    }
+
+    if (argv[1] != NULL)
+    {
+        int number = atoi(argv[1]);
+        if(number > 0 && number < linesToDisplay)
+        {
+            start = linesToDisplay - number;
+        }
+    }
+
+    if(redirectedstdout)
+    {
+        int fd = getFileDescriptor(stdoutPath, O_CREAT | O_WRONLY | O_TRUNC);
+        for (int i = start ; i < linesToDisplay ; i++)
         {
             dprintf(fd, "%d %s\n", i + 1, historyBuffer[i]);
         }
@@ -130,19 +147,20 @@ int history(char *historyBuffer[], bool redirectedstdout, bool appendStdOut,  ch
     }
     if (appendStdOut)
     {
-        int fd = getFileDescriptor(stdoutAppendPath , O_CREAT | O_WRONLY | O_APPEND);
-        for(int i = 0 ; historyBuffer[i] != NULL ; i++)
+        int fd = getFileDescriptor(stdoutAppendPath, O_CREAT | O_WRONLY | O_APPEND);
+        for (int i = start ; i < linesToDisplay ; i++)
         {
             dprintf(fd, "%d %s\n", i + 1, historyBuffer[i]);
         }
         return 0;
     }
-    
-    for(int i = 0 ; historyBuffer[i] != NULL ; i++)
-      {
-        printf("%d %s\n", i + 1, historyBuffer[i]);
-      }
+    for (int i = start; i < linesToDisplay ; i++)
+    {
+        printf("%d %s\n", i + 1 , historyBuffer[i]);
+    }
     return 0;
+
+
 }
 
 int pwd( bool redirectedstdout, bool appendStdOut, char *stdoutPath,  char *stdoutAppendPath)

@@ -234,7 +234,7 @@ void readLineTab(char *prompt, availableCommands *list, char *out, size_t outSiz
                     out[len++] = ' ';
                 }
 
-                out[outSize - 1] = '\0';
+                out[len] = '\0';
                 len = strlen(out);
                 cursorPos = len;
                 redraw(prompt, out, cursorPos);
@@ -248,7 +248,7 @@ void readLineTab(char *prompt, availableCommands *list, char *out, size_t outSiz
                     out[len++] = matches[0][prefixLen++];
                 }
 
-                out[outSize - 1] = '\0';
+                out[len] = '\0';
                 len = strlen(out);
                 cursorPos = len;
                 redraw(prompt, out, cursorPos);

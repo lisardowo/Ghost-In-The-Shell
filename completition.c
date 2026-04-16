@@ -100,7 +100,7 @@ void commandListSanitize(availableCommands *list)
 
 bool getBuiltIns(availableCommands *list)
 {
-    char *builtins[] = {"exit", "echo", "cd", "pwd", "type"};
+    char *builtins[] = {"exit", "echo", "cd", "pwd", "type", "history", "jobs"};
     size_t n = sizeof(builtins) / sizeof(builtins[0]);
 
     for (size_t i = 0 ; i < n ; i++)

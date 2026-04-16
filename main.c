@@ -361,7 +361,7 @@ void REPL()
       else if(strcmp("history", current[0]) == 0 )
       {
        
-        lastStatus = history(argv, historyBuffer, redirectedstdout, appendStdOut , stdoutPath, stdoutAppendPath);
+        lastStatus = history(current, historyBuffer, redirectedstdout , appendStdOut, stdoutPath, stdoutAppendPath);
       
       }
 

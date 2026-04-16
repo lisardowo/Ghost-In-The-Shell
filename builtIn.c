@@ -117,50 +117,88 @@ int type(char **current, bool redirectedstdout, bool redirectedstderr, bool appe
     return 1; 
 }
 
-int history(char *argv[], char *historyBuffer[], bool redirectedstdout, bool appendStdOut,  char *stdoutPath, char *stdoutAppendPath)
+int history(char **current, char *historyBuffer[], bool redirectedstdout, bool appendStdOut,  char *stdoutPath, char *stdoutAppendPath)
 {
-    int linesToDisplay = 0;
-    int start = 0 ;
 
-    while(historyBuffer[linesToDisplay] != NULL)
+    int linesToDisplay = 0 ;
+    int start = 0;
+    int end = 0;
+
+    while (historyBuffer[linesToDisplay] != NULL)
     {
         linesToDisplay++;
     }
 
-    if (argv[1] != NULL)
+    end = linesToDisplay;
+
+    if (current[1] != NULL)
     {
-        int number = atoi(argv[1]);
-        if(number > 0 && number < linesToDisplay)
+        if (strcmp(current[1], "!!") == 0)
         {
-            start = linesToDisplay - number;
+            if (linesToDisplay == 0)
+            {
+                printf("shell: !!: no elements in history\n");
+                return 1;
+            }
+            start = linesToDisplay - 1;
+            end = linesToDisplay;
+        }
+        else if (current[1][0] == '!' && current[1][1] != '\0')
+        {
+            char *indexStr = &current[1][1];
+
+            for (int i = 0 ; indexStr[i] != '\0' ; i++)
+            {
+                if (indexStr[i] < '0' || indexStr[i] > '9')
+                {
+                    return 1;
+                }
+            }
+            int targetIndex = atoi(indexStr);
+            if(targetIndex <= 0 || targetIndex > linesToDisplay)
+            {
+                printf("shell: !%s: not found\n", indexStr);
+                return 1;
+            }
+
+            start = targetIndex - 1;
+            end = targetIndex ; 
+        }
+        else
+        {
+            int number = atoi(current[1]);
+            if (number > 0 && number < linesToDisplay)
+            {
+                start = linesToDisplay - number;
+            }
         }
     }
 
-    if(redirectedstdout)
+    if (redirectedstdout)
     {
         int fd = getFileDescriptor(stdoutPath, O_CREAT | O_WRONLY | O_TRUNC);
-        for (int i = start ; i < linesToDisplay ; i++)
+        for (int i = start ; i < end ; i++)
         {
             dprintf(fd, "%d %s\n", i + 1, historyBuffer[i]);
         }
         return 0;
     }
+    
     if (appendStdOut)
     {
         int fd = getFileDescriptor(stdoutAppendPath, O_CREAT | O_WRONLY | O_APPEND);
-        for (int i = start ; i < linesToDisplay ; i++)
+        for (int i = start ; i < end ; i++)
         {
             dprintf(fd, "%d %s\n", i + 1, historyBuffer[i]);
         }
         return 0;
     }
-    for (int i = start; i < linesToDisplay ; i++)
+
+    for (int i = start ; i < end ; i++)
     {
         printf("%d %s\n", i + 1 , historyBuffer[i]);
     }
     return 0;
-
-
 }
 
 int pwd( bool redirectedstdout, bool appendStdOut, char *stdoutPath,  char *stdoutAppendPath)

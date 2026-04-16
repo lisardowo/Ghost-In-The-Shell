@@ -94,7 +94,17 @@ bool expandHistory(char userInput[], size_t userInputSize, int historyCount, cha
     int tempPosition = 0;
     bool expanded = false;
 
-    
+    int commandStart = 0;
+
+    while(userInput[commandStart] == ' ' || userInput[commandStart] == '\t')
+    {
+        commandStart++;
+    }
+    if(strncmp(&userInput[commandStart], "history", 7) == 0 && (userInput[commandStart + 7] == '\0' || userInput[commandStart + 7] == ' ' || userInput[commandStart + 7] == '\t'))
+    {
+        return true;
+        
+    }
 
     //char *currentToken = userInput;
 

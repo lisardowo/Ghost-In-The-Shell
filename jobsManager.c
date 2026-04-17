@@ -4,13 +4,6 @@
 job jobList[maxJobs];
 static int nextJobId = 1;
 
-void initJob()
-{
-    for (int i = 0 ; i < maxJobs ; i++)
-    {
-        jobList[i].running = false;
-    }
-}
 
 int addJob(pid_t pid, char *command)
 {

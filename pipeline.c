@@ -1,5 +1,4 @@
 #include "pipeline.h"
-#include "signalsManager.h"
 
 int reddirectInChild(bool redirectedStdOut, bool redirectedStdErr, bool appendStdOuut, bool appendStdErr,char *stdOutPath, char *stdErrPath, char *stdoutAppendPath, char *stderrAppendPath)
 {

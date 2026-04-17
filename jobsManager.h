@@ -18,7 +18,7 @@ typedef struct
     bool running;
 } job;
 
-void initJob();
+
 int addJob(pid_t pid, char *command);
 void removeJob(pid_t pid);
 void checkBacktroundJobs();

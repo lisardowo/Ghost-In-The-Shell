@@ -40,7 +40,14 @@ Modules:
 - `inputManager.*`: Implementation of the prompt functions, directly related to completition.
 - `lineEdition.*`: Implementation of the completition module, recieving the autocompleted commands and replacing the in terminal input, highly depends in "input manager" and "completition" modules.
 - `quotationParser.*`: Parser that detects and interpret input inside quotation.
-
+- `getHistory.*` : module that manages the history logic
+- `expansion.*` : module that expands special tokens
+- `fileCompletion.*` : module that handles self completion logic
+- `globbing.*` : module that expands tokens 
+- `jobsManager.*` : module that controls backgrounding of jobs
+- `pipeline.*` : module that controls pipeling 
+- `signalsManager.*` : module that handles keyboard signals in runtime
+- `utils.*` : module with utility, general purpose functions
 ## 2. Dependencies
 
 
@@ -63,8 +70,15 @@ Modules:
 - `inputManager.c` depends on: `inputManager.h` //TODO Prolly will remove inputManager in future versions
 - `Completition.c` depends on: `completition.h`
 - `quotationParser.c` depends on: `quotationParser.h`
-- `utils.c` depends on: `quotationParser.h`
+- `utils.c` depends on: `utils.h`
 - `getHistory.c` depends on: `quotationParser.h`
+- `expansion.c` depends on `expansion.h`
+- `fileCompletion.c` depends on `fileCompletion.h`
+- `globbing.c` depends on `globbing.h`
+- `jobsManager.c` depends on `jobsManager.h`, `utils.h`
+- `pipeline.c` depends on `binariesManager.h`,`signalsManager.h`,`builtIn.h`,`utils.h`
+- `signalsManager.c` depends on `signalsManager.h`
+
 
 
 ## 3. Public API (headers)
@@ -75,7 +89,7 @@ This section lists all functions declared in headers (expected API surface).
 
 - `void argumentCounter(char *userInput, int* argumentCount);`
   - Counts the arguments given in the prompt based in the spaces, if part of the string is quoted then counts as just one argument.
-- `vvoid argumentExtractor(char *userInput, int argumentCount);`
+- `void argumentExtractor(char *userInput, int argumentCount);`
   - based in argument count, tokenize the arguments and stores them to a argument vector variable
 - `bool toogleState(bool state);`
   - utility function for is quoted logic (used in a primitive version) no longer in use for most code base
@@ -149,16 +163,98 @@ This section lists all functions declared in headers (expected API surface).
 - `void spacesInQuotes(char *userInput);`
   - replace quoted spaces for an arbitary value in arguments so it can be counted as one .
 
-###
+### 3.7 `pipeline.h`
+
+- `int reddirectInChild(bool redirectedStdOut, bool redirectedStdErr, bool appendStdOuut, bool appendStdErr,char *stdOutPath, char *stdErrPath, char *stdoutAppendPath, char *stderrAppendPath);`
+  -  setup the output redirection of pipelined commands 
+- `int runPipeline(bool toBackground, char *argv[],char *commands[100][100], int commandCount ,char **historyBuffer, bool redirectedstdout, bool redirectedstderr, bool appendStdOut, bool appendStdErr, char *stdoutPath, char *stderrPath, char *stdoutAppendPath, char *stderrAppendPath);`
+  - Executes the piped commands 
+- `int externalInChild(char **current, bool redirectedStdErr, bool appendStdErr, char *stdErrPath, char* stdErrAppendPath);`
+  - run external commands in the pipeline
+- `int runBuiltinChild(char *argv[], char **current, char **historyBuffer,bool redirectedStdOut, bool redirectedStdErr, bool appendStdOuut, bool appendStdErr,char *stdOutPath, char *stdErrPath, char *stdoutAppendPath, char *stderrAppendPath);`
+  - run built in commands in the pipeline
+- `int runBuiltin(char *argv[], char **current, char **historyBuffer,bool redirectedStdOut, bool redirectedStdErr, bool appendStdOuut, bool appendStdErr,char *stdOutPath, char *stdErrPath, char *stdoutAppendPath, char *stderrAppendPath);`
+  - run built in commands
+
+### 3.8 `signalsManager.h`
+
+- `void ignoreSignalsInParent();`
+  - ignore keyboard signals for the program itself (to not quit with ctrl + C)
+- `void restoreSignalsInParent();`
+  - restore the ignored signal and passes it to the program to interrupt running process
+
+### 3.10 `utils.h`
+- `bool isOperator(char *token);`
+  - utility function used to set flags for operators along the code base 
+- `void createPrompt();`
+  - utility function that creates the prompt that will be rendered by drawLine function
+- `int getFileDescriptor(const char *descriptorTarget,  int flags);`
+  - utility function that gets the File descriptor for every function that needs it, may delete in the future due security uses 
+- `char* getPath(char *command);`
+  - utility function that gets the enviroment variable of PATH
+
+### 3.11 `jobsManager.h`
+
+- `typedef struct {} job;`
+  - struct that represents the backgrounded job
+  * int id;-> id of the job in the list (locally set when filling the list)
+  * pid_t pid; -> process id given by the kernel
+  * char *command; -> string of the command backgrounded
+  * bool running; -> state of the command
+- `extern job jobList[maxJobs];`
+  - array of jobStructures that represents the backgrounded jobs
+- `int addJob(pid_t pid, char *command)`
+  - fills the backgrounded job and adds it to jobList
+- `void removeJob(pid_t pid)`
+  - Takes the pid of the process to remove from the list of backgrounded Jobs when its done
+- `void checkBacktroundJobs()`
+  - checksBackgroundJobs and if one of them are Done, shows it and removes it from the list
+
+### 3.12 `globbing.h`
+- `void expandGlobs(char *argv[]);`
+  - expand glob tokens t something the shell will understand
+### 3.13 `getHistory.h`
+- `void addHistory(char *command, int *historyCount, char *historyBuffer[]);`
+  - add used command to history buffer
+- `void dumpHistory(char *historyBuffer[]);`
+  - Dumps history buffer to historyFile.txt, if historyFile.txt dont exist, will create it
+- `void getHistory(int *historyCount, char *historyBuffer[]);`
+  - loads history from historyFile to historyBuffer
+- `bool expandHistory(char userInput[], size_t userInputSize, int historyCount, char *historyBuffer[]);`
+  - utility function that expands !! arguments of history for correct interpretation
+
+### 3.14 `fileCompletion.h`
+- `size_t fileMatches(char *prefix, char ***matches);`
+  - looks for the dirs and files in the system, returns how many matched the current evaluated prefix
+### 3.15 `expansion.h`
+- `void expandArguments(char *argv[]);`
+  - takes the arguments and if found a $ expands it to something the shell can understand
+### 3.16 `builtin.h`
+- `int type(char **current, bool redirectedstdout ,bool redirectedstderr, bool appendStdOut, bool appendStdErr, char *stdoutPath, char *stderrPath , char *stdoutAppendPath, char *stderrAppendPath );`
+  - says if a command is builtin or system binary
+- `int history(char **current, char *historyBuffer[], bool redirectedstdout, bool appendStdOut,  char *stdoutPath, char *stdoutAppendPath);`
+  - shows the command history of the shell
+- `int echo(char **current, bool redirectedstdout,  bool appendStdOut, char *stdoutPath,  char *stdoutAppendPath);`
+  - prints the arguments passed after echo
+- `int cd(char **current, bool redirectedstderr, bool appendStdErr, char *stderrPath, char *stderrAppendPath);`
+  - navigate trought the system file
+- `int pwd( bool redirectedstdout, bool appendStdOut, char *stdoutPath,  char *stdoutAppendPath);`
+  - prints current directory
+- `int jobs(job *jobList, bool redirectedstdout, bool appendStdOut, char *stdoutPath,  char *stdoutAppendPath);`
+  - prints the list of background jobs
 
 ## 4. Functional Behavior Summary
 
-- readLineTab gets the input from user instantaneously so autocomplete can be triggered.
-- sanitize and prepares input to use.
-- compares argv[0] with builtin commands:
-  - if argv is a builtin, command is executed 
-  - if not, it looks for the command in PATH
-  - if command exist, is executed, if not it raises an error
+- prompt : shell shows the prompt waiting for input, input is in raw mode which allows self completion
+- sanitization: input is sanitized deleting new lines
+- parsing: the program parses through the input creating tokens for each space and detects "|", "&" and ">" tokens
+- expansion: relative arguments (such as ?.c) are expanded so the shell understands
+- redirecting and pipelining: 
+    * detect special operators (|, >, &)
+    * separates the commands in segments
+    * run the commands with modifiers if found
+- execution: the shell runs the command with the specific modifiers given as arguments
+- finalization: the program waits for the process to end and shows the prompt again, starting the cycle one more time  
 
 ## 5 Extending behavior
 
@@ -210,11 +306,17 @@ this section explains how to add new features:
 
 ## 6 Current Known Gaps
 
+  1. lack of proper buffer/memory management
   2. Current line editor does not support advanced editing
   3. Autocompletion is first token only, does not have any class of argument-aware/flags completion
   5. no config system
   6. some buffers are fixed size
   7. Error messages even tho are functional, some outpus are inconsistent in style and detail
+  8. quoting can still fail in specific cases
+  9. The program does not consider specific cases and states that the terminal can take
+  10. history file is created in the relative path where the shell is started
+  11. Shell will only work in linux enviroments
+  12. Codebase is unnecessary long and could be hard to modify  
 
 ## 7 Installation and Quick Test
 
@@ -226,6 +328,7 @@ this section explains how to add new features:
   3. make
   4. cmake
   5. git
+  6. python
   
 ```
 
@@ -275,7 +378,81 @@ In your terminal:
   8. exit
     Expected: executable stops cleanly
 
-### 7.6 Troubleshooting
+### 7.6 Test Scripts
+
+  the directory ./pythonTestScripts as the name implies, contains 10 python scripts that you can use to try out the shell and its features. 
+
+  * Before using the scripts here are some considerations you must cover:
+      - The project shall be already compiled (just run make command before trying to use any script)
+      - for the script to work you have to be inside "pythonTestScripts" dir, trying to run the command from src will result in a error (just use cd command to move into pythonTestScripts)
+      - libraries used are python standard, it doesnt use any dependency that need pip to install
+      - file "writingToterminal" is a small library that exposes functions to use in all the tests but the file itself doesnt do anything
+      - You do not need to manually run the terminal to use the test scripts, the scripts automatically start a new session and goes to testing
+      - Scripts can take up to a couple of seconds to succesfully run, do not think is broken, wait about 15 seconds and should work. If not, feel free to contact me so we can figure out why
+
+  Now that you are ready to use the scripts heres a quick guide:
+    move into pythonTestScripts directory
+    ```
+    bash
+    cd ./pythonTestScripts
+    ```
+    from pythonTestScripts dir you can run the test with
+    ```
+    bash
+    python ./<testScript>.py
+    ```
+    here is the list of all the available scripts and a overview of what it does:
+      - basics.py: test the basic features (command execution, builtins etc)
+      - navigating.py: test the capacity to navigate through your file system  
+      - quoting.py: test the usage of quotes and how it modifies the behavior in a command
+      - redirection.py: test the redirection feature (forwarding the output of a command to a file)
+      - commandCompletion.py: test the self completion of commands when pressing TAB
+      - filenmeCompletion.py: test the self completion of directories and files when pressing TAB
+      - backgroundJobs.py: test the capacity of queue commands to keep using the program while queued commands keep running 
+      - pipelining.py: test the concatenation of commands using the previous output as argument
+      - history.py: test the command history
+      - historyPersistence.py: test the persistency across sessions
+
+  the usage of one of this scripts would look like this:
+  ```
+  bash
+
+  python ./basics.py
+  ```
+
+  Output should look like this:
+  
+  ```
+  ==== OUTPUT ====
+  src/pythonTestScripts $ echo hello
+  hello 
+  src/pythonTestScripts $ echo hello world
+  hello world 
+  src/pythonTestScripts $ type echo
+  echo is a shell builtin
+  src/pythonTestScripts $ type ls
+  ls is /usr/bin/ls
+  src/pythonTestScripts $ invalid_command_xyz
+  invalid_command_xyz: command not found
+  src/pythonTestScripts $ exit 0
+
+  ==== EXPECTED OUTPUT ====
+  hello
+  hello world
+  echo is a shell builtin
+  ls is usr/bin/ls
+  invalid_command_xyz: command not found
+  No output, shell should exit cleanly
+
+  Exit code: 0
+
+  ```
+
+  you can compare output with expected output and notice that are in fact the same
+  
+
+
+### 7.7 Troubleshooting
   1. Command not found for compiler tools:
     Install build tools package for your distro
   2. Build succeeds but shell does not run:

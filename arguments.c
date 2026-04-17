@@ -25,7 +25,7 @@ void argumentExtractor(char *userInput, int argumentCount)
     maxArgs = argumentCount;
   }
 
-  for (int i = 0 ; ; i++)// TODO condition not specified ->trying with until null term
+  for (int i = 0 ; ; i++)
   {
       bool endOfInput = (userInput[i] == '\0');
       bool splitInPosition = (!endOfInput && userInput[i] == ' ' && !inSingle && !inDouble && !escaped);

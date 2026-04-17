@@ -4,7 +4,7 @@
 static char storage[1000];
 static int storagePosition = 0;
 
-static void resetStoragePosition() //TODO this would be better with an int type?
+static void resetStoragePosition() 
 {
     storagePosition = 0;
 }

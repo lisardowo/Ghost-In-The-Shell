@@ -105,7 +105,7 @@ int externalInChild(char **current, bool redirectedStdErr, bool appendStdErr, ch
         if(redirectedStdErr)
         {
             int fd = getFileDescriptor(stdErrPath, O_TRUNC | O_CREAT | O_WRONLY);
-            dprintf(fd, "%s command not found\n", current[0] ); //TODO have a feeling that this snippet gon be bugged
+            dprintf(fd, "%s command not found\n", current[0] ); 
             close(fd);
 
         }
@@ -113,13 +113,13 @@ int externalInChild(char **current, bool redirectedStdErr, bool appendStdErr, ch
         if(appendStdErr)
         {
             int fd = getFileDescriptor(stdErrAppendPath, O_APPEND | O_CREAT | O_WRONLY);
-            dprintf(fd, "%s command not found\n", current[0] ); //TODO have a feeling that this snippet gon be bugged
+            dprintf(fd, "%s command not found\n", current[0] );
             close(fd);
 
         }
         else
         {
-        dprintf(STDERR_FILENO, "%s command not found\n", current[0] ); //TODO have a feeling that this snippet gon be bugged
+        dprintf(STDERR_FILENO, "%s command not found\n", current[0] ); 
         }
         return 127;
     }

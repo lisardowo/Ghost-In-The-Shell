@@ -5,7 +5,7 @@ printf "x\ny\nz\n" | grep y
 echo test | rev
 printf "1\n2\n3\n" | tail -n 1"""
 
-#TODO stage still in development 
+
 
 import writingToterminal
 import json

@@ -67,7 +67,7 @@ Modules:
 - `lineEdition.c` depends on: `lineEdition.h`, `completition.h`
 - `binariesManager.c` depends on: `binariesManager.h`, `arguments.h`
 - `arguments.c` depends on: `arguments.h`, `quotationParser.h`
-- `inputManager.c` depends on: `inputManager.h` //TODO Prolly will remove inputManager in future versions
+- `inputManager.c` depends on: `inputManager.h`
 - `Completition.c` depends on: `completition.h`
 - `quotationParser.c` depends on: `quotationParser.h`
 - `utils.c` depends on: `utils.h`

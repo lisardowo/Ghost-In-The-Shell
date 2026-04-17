@@ -25,7 +25,7 @@ void commandsFree(availableCommands *list)
     free(list->items);
     list->items = NULL;
     list->count = 0 ;
-    list->cap = 0 ; //TODO it feels like this will bring problems later ..
+    list->cap = 0 ; 
 }
 
 bool commandListGrow(availableCommands *list)

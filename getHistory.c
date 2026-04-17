@@ -25,14 +25,34 @@ void addHistory(char *command, int *historyCount, char *historyBuffer[])
 
 void dumpHistory(char *historyBuffer[])
 {
-    
-    int historyFd = getFileDescriptor("historyFile.txt", O_CREAT | O_TRUNC | O_WRONLY);
+    char historyPath[1024];
+    getHistoryFilePath(historyPath, sizeof(historyPath));
+
+    int fd = open(historyPath, O_CREAT | O_TRUNC | O_WRONLY, 0600);
+
+    if(fd == -1)
+    {
+        return;
+    }
 
     for(int i = 0 ; historyBuffer[i] != NULL ; i++)
     {
-        dprintf(historyFd, "%s\n", historyBuffer[i]);
+        dprintf(fd, "%s\n", historyBuffer[i]);
     }
+    close(fd);
+}
 
+static void getHistoryFilePath(char *pathBuffer, size_t size)
+{
+    char *home = getenv("HOME");
+    if (home != NULL)
+    {
+        snprintf(pathBuffer, size, "%s/.shellHistory", home);
+    }
+    else
+    {
+        snprintf(pathBuffer, size , ".shellHistory");
+    }
 }
 
 void getHistory(int *historyCount, char *historyBuffer[])

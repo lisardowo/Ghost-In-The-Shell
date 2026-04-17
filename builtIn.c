@@ -18,6 +18,7 @@ int type(char **current, bool redirectedstdout, bool redirectedstderr, bool appe
         {
             int fd = getFileDescriptor(stdoutPath, O_TRUNC | O_CREAT | O_WRONLY);
             dprintf(fd,"%s is a shell builtin\n", current[1]);
+            close(fd);
             return 0;
         }
 
@@ -25,6 +26,7 @@ int type(char **current, bool redirectedstdout, bool redirectedstderr, bool appe
         {
             int fd = getFileDescriptor(stdoutAppendPath, O_APPEND | O_CREAT | O_WRONLY);
             dprintf(fd, "%s is a shell builtin\n", current[1]);
+            close(fd);
             return 0;
         }
 
@@ -40,11 +42,13 @@ int type(char **current, bool redirectedstdout, bool redirectedstderr, bool appe
             if (path != NULL)
             {
                 dprintf(fd, "%s is %s\n", current[1], path);
+                close(fd);
                 return  0;
             }
             else
             {
                 printf("%s: not found\n", current[1]);
+                close(fd);
                 return 1;
             }
         }
@@ -57,11 +61,13 @@ int type(char **current, bool redirectedstdout, bool redirectedstderr, bool appe
             if (path != NULL)
             {
                 printf("%s is %s\n", current[1], path);
+                close(fd);
                 return  0;
             }
             else
             {
                 dprintf(fd, "%s: not found\n", current[1]);
+                close(fd);
                 return 1;
             }
         }
@@ -74,11 +80,13 @@ int type(char **current, bool redirectedstdout, bool redirectedstderr, bool appe
             if (path != NULL)
             {
                 dprintf(fd, "%s is %s\n", current[1], path);
+                close(fd);
                 return  0;
             }
             else
             {
                 printf("%s: not found\n", current[1]);
+                close(fd);
                 return 1;
             }
         }
@@ -91,11 +99,13 @@ int type(char **current, bool redirectedstdout, bool redirectedstderr, bool appe
             if (path != NULL)
             {
                 printf("%s is %s\n", current[1], path);
+                close(fd);
                 return  0;
             }
             else
             {
                 dprintf(fd, "%s: not found\n", current[1]);
+                close(fd);
                 return 1;
             }
         }
@@ -181,6 +191,7 @@ int history(char **current, char *historyBuffer[], bool redirectedstdout, bool a
         {
             dprintf(fd, "%d %s\n", i + 1, historyBuffer[i]);
         }
+        close(fd);
         return 0;
     }
     
@@ -191,6 +202,7 @@ int history(char **current, char *historyBuffer[], bool redirectedstdout, bool a
         {
             dprintf(fd, "%d %s\n", i + 1, historyBuffer[i]);
         }
+        close(fd);
         return 0;
     }
 
@@ -210,6 +222,7 @@ int pwd( bool redirectedstdout, bool appendStdOut, char *stdoutPath,  char *stdo
         {
             int fd = getFileDescriptor(stdoutPath, O_CREAT | O_TRUNC | O_WRONLY);
             dprintf(fd, "%s\n",cwd);
+            close(fd);
             return 0;
         }
 
@@ -217,6 +230,7 @@ int pwd( bool redirectedstdout, bool appendStdOut, char *stdoutPath,  char *stdo
         {
             int fd = getFileDescriptor(stdoutAppendPath, O_CREAT | O_APPEND | O_WRONLY);
             dprintf(fd, "%s\n",cwd);
+            close(fd);
             return 0;
         }
         printf("%s\n",cwd);
@@ -243,6 +257,7 @@ int cd(char **current, bool redirectedstderr, bool appendStdErr, char *stderrPat
           {
             int fd = getFileDescriptor(stderrPath, O_CREAT | O_WRONLY | O_TRUNC);
             dprintf(fd, "%s: no such file or directory : \"%s\" \n", current[0], current[1]);
+            close(fd);
             return 1;
 
           } 
@@ -251,6 +266,7 @@ int cd(char **current, bool redirectedstderr, bool appendStdErr, char *stderrPat
           {
             int fd = getFileDescriptor(stderrAppendPath , O_CREAT | O_WRONLY | O_APPEND);
             dprintf(fd, "%s: no such file or directory : \"%s\" \n", current[0], current[1]);
+            close(fd);
             return 1;
           } 
                     
@@ -275,6 +291,7 @@ int echo(char **current, bool redirectedstdout,  bool appendStdOut, char *stdout
         dprintf(fd,"%s ", current[i]);
       }
       dprintf(fd, "\n");
+      close(fd);
       return 0;
 
     }
@@ -288,6 +305,7 @@ int echo(char **current, bool redirectedstdout,  bool appendStdOut, char *stdout
             dprintf(fd,"%s ", current[i]);
         }
         dprintf(fd, "\n");
+        close(fd);
         return 0;
         
     }

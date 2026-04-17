@@ -30,6 +30,7 @@ int reddirectInChild(bool redirectedStdOut, bool redirectedStdErr, bool appendSt
             return 1 ;
         }
         dup2(fd, STDERR_FILENO);
+        close(fd);
     }
     if (appendStdErr)
     {

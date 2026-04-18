@@ -2,6 +2,8 @@
 #include "getHistory.h"
 #include "utils.h"
 
+static void getHistoryFilePath(char *pathBuffer, size_t size);
+
 void addHistory(char *command, int *historyCount, char *historyBuffer[])
 {
     if(command[0] == '\0')
@@ -47,17 +49,21 @@ static void getHistoryFilePath(char *pathBuffer, size_t size)
     char *home = getenv("HOME");
     if (home != NULL)
     {
-        snprintf(pathBuffer, size, "%s/.shellHistory", home);
+        snprintf(pathBuffer, size, "%s/.GIshellHistory", home);
     }
     else
     {
-        snprintf(pathBuffer, size , ".shellHistory");
+        snprintf(pathBuffer, size , ".GIshellHistory");
     }
 }
 
 void getHistory(int *historyCount, char *historyBuffer[])
 {
+    char historyPath[1024];
+    getHistoryFilePath(historyPath, sizeof(historyPath));
+
     int historyFD = open("historyFile.txt", O_RDONLY);
+    printf("debug %s\n", historyPath);
     if(historyFD == -1)
     {
         historyBuffer[0] = NULL;
@@ -104,8 +110,8 @@ void getHistory(int *historyCount, char *historyBuffer[])
     }
 
     historyBuffer[*historyCount] = NULL;
-    
-    
+    close(historyFD);
+
 }
 
 bool expandHistory(char userInput[], size_t userInputSize, int historyCount, char *historyBuffer[])

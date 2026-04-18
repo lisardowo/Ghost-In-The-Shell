@@ -1,12 +1,12 @@
 
-#pragma once
-
 #include "utils.h"
 #include <sys/types.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <sys/wait.h>
 #include <string.h>
+#include <signal.h>
+#include <stddef.h>
 
 #define maxJobs 100
 
@@ -18,9 +18,10 @@ typedef struct
     bool running;
 } job;
 
+extern job jobList[maxJobs];
 
 int addJob(pid_t pid, char *command);
 void removeJob(pid_t pid);
 void checkBacktroundJobs();
-
-extern job jobList[maxJobs];
+void ignoreSignalsInParent();
+void restoreSignalsInChild();

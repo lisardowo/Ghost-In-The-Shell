@@ -3,18 +3,18 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "proccesess.h"
 #include "pipeline.h"
-#include "lineEdition.h"
-#include "binariesManager.h"
 #include "arguments.h"
-#include "inputManager.h"
-#include "getHistory.h"
 #include "utils.h"
-#include "builtIn.h"
-#include "signalsManager.h"
-#include "expansion.h"
-#include "globbing.h"
-#include "jobsManager.h"
+#include "selfCompletion.h"
+#include "history.h"
+#include "commands.h"
+
+//TODO find why 3: warning: ‘g_old’ defined but not used [-Wunused-variable]
+/*   23 | static struct termios g_old;
+      |                       ^~~~~
+      */
 
 void createPrompt();
 void REPL();

@@ -1,6 +1,6 @@
 
-#include "getHistory.h"
-#include "utils.h"
+#include "history.h"
+
 
 static void getHistoryFilePath(char *pathBuffer, size_t size);
 
@@ -63,7 +63,7 @@ void getHistory(int *historyCount, char *historyBuffer[])
     getHistoryFilePath(historyPath, sizeof(historyPath));
 
     int historyFD = open("historyFile.txt", O_RDONLY);
-    printf("debug %s\n", historyPath);
+   
     if(historyFD == -1)
     {
         historyBuffer[0] = NULL;

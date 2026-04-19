@@ -119,6 +119,11 @@ bool getBins(availableCommands *list)
 {
     char *path = getenv("PATH");
     
+    if (path == NULL)
+    {
+        return false;
+    }
+
     char *modifiabPath = strdup(path);
 
     char *ptr = NULL ;
@@ -236,8 +241,8 @@ size_t lengestCommonPrefix(char **matches, size_t count)
 
 size_t fileMatches(char *prefix, char ***matches)
 {
-    char dirPath[1024];
-    char filePrefix[256];
+    char dirPath[1024]; //TODO  same with prompt and stuff, long ass paths can lead to RCE
+    char filePrefix[256]; //TODO this shouldnt create mucho problem since longer prefixes are jst ignored
 
     char *lastSlash = strrchr(prefix, '/');
 
@@ -272,24 +277,31 @@ size_t fileMatches(char *prefix, char ***matches)
         }
         if (strncmp(entry->d_name, filePrefix, strlen(filePrefix)) == 0)
         {
-            char fullPath[2048];
+            char fullPath[2046]; //TODO RCE, BUFFER OVERFLOW
             if (lastSlash != NULL)
             {
+                
                 int directoryLen = lastSlash - prefix + 1;
                 if (directoryLen >= (int)sizeof(dirPath)) 
                 {
                     directoryLen = sizeof(dirPath) -1; 
                 }
 
+                strncpy(dirPath, prefix, directoryLen);
+                dirPath[directoryLen] = '\0';
             
-                snprintf(fullPath, sizeof(fullPath), "%s%s", dirPath, entry->d_name);
+                strncpy(filePrefix, lastSlash + 1, sizeof(filePrefix) - 1);
+                filePrefix[sizeof(filePrefix) - 1] = '\0';
+
             }
             else
             {
-                strcpy(fullPath, entry->d_name);
+                strcpy(dirPath, ".");
+                strncpy(filePrefix, prefix, sizeof(filePrefix) - 1);
+                filePrefix[sizeof(filePrefix) - 1] = '\0';
             }
             struct stat st;
-            char statPath[2048];
+            char statPath[2048]; 
 
             snprintf(statPath, sizeof(statPath), "%s/%s", strcmp(dirPath, ".") == 0 ? ".": dirPath, entry->d_name);
             if (stat(statPath, &st) == 0 && S_ISDIR(st.st_mode))

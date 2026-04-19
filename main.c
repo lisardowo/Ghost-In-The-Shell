@@ -13,9 +13,9 @@
 
 void createPrompt();
 void REPL();
-char *historyBuffer[10000];
+char *historyBuffer[10000]; // TODO What if history to long? -> Buffer overflow, remote code execution?
 int historyCount;
-char prompt[1024];
+char prompt[1024]; //user can create a long ass dir/dirPath to max out the prompt size
 
 typedef enum
 {
@@ -65,7 +65,7 @@ void REPL()
     int segment = 0;
     int position = 0;
 
-    int pipelineSegment[100];
+    int pipelineSegment[100]; //TODO I remember this has some error raising if way to many segments -> Search for that 
     segmentType pipeLineConditionals[100];
 
     int pipelineCount = 0;
@@ -109,8 +109,6 @@ void REPL()
 
     char *segments[100][100];
     segmentType typeOfSegment[100];
-
- 
 
     if (argv[0] == NULL)
     {
@@ -210,7 +208,7 @@ void REPL()
       {
         if (argv[i + 1] == NULL)
         {
-          printf("Esto deberia dejar escribir en multiples lineas\n");
+          printf("Esto deberia dejar escribir en multiples lineas\n"); //TODO esto deberia dejar de escribir en multiples lineas
           break;
                  
         }
@@ -235,7 +233,7 @@ void REPL()
       {
         if (argv[i + 1] == NULL)
         {
-          printf("Esto deberia dejar escribir en multiples lineas\n");
+          printf("Esto deberia dejar escribir en multiples lineas\n"); //TODO esto deberia dejar de escribir en multiples lineas
           break;
                  
         }
@@ -259,7 +257,7 @@ void REPL()
       {
         if (argv[i + 1] == NULL)
         {
-          printf("Esto deberia dejar escribir en multiples lineas\n");
+          printf("Esto deberia dejar escribir en multiples lineas\n"); //TODO esto deberia dejar de escribir en multiples lineas
           break;
                  
         }
@@ -284,7 +282,7 @@ void REPL()
 
 }
 
-//for (int i = 0 ; commandToken[i] != NULL ; i++ ) printf("%s", commandToken[i]);;
+
   segments[segment][position] = NULL;
   typeOfSegment[segment] = NONE;
 

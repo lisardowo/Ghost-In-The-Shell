@@ -2,7 +2,7 @@
 
 char userInput[10000];
 
-static char argvStorage[10000];
+static char argvStorage[10000]; //TODO what would happen if way to many arguments? like WAY TO MANY also, i think this is max memory for linnuix programs
 char *argv[1000];
 
 static char storage[1000];

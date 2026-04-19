@@ -2,20 +2,23 @@
 #include <fcntl.h>
 #include "utils.h"
 
-char binPath[100000];
-extern char prompt[1024];
+char binPath[100000]; //TODO what if someone on purpose creates a long ass binary ?
+extern char prompt[1024]; //same problem of "main" prompt
 
 void createPrompt()
 {
 
-    if (getcwd(prompt, sizeof(prompt)) != NULL)
+    char tempcwd[1024];
+
+    if (getcwd(prompt, sizeof(tempcwd)) != NULL)
     {
-      if(strcmp(prompt, "/") == 0)
+      if(strcmp(tempcwd, "/") == 0)
       {
-        snprintf(prompt, sizeof(prompt), "/");
+        snprintf(prompt, sizeof(tempcwd), "~ / $ ");
         return;
-      }
-      char *temp[1024];
+       }
+
+      char *temp[1024]; //TODO using a fixed size of cwd and prompting creates the ability to RCE -> I read that dirs name are capped to 256 but PATHS can be up to 4096
       char modifiablePrompt[1024];
       strncpy(modifiablePrompt, prompt, sizeof(modifiablePrompt)); 
       modifiablePrompt[sizeof(modifiablePrompt) - 1] = '\0';
@@ -35,9 +38,17 @@ void createPrompt()
       }
       else if (i == 1)
       {
-        snprintf(prompt, sizeof(prompt), "%s $", temp[0]);
+        snprintf(prompt, sizeof(prompt), "%s $ ", temp[0]);
+      }
+      else
+      {
+        snprintf(prompt, sizeof(prompt), "$ ");
       }
 
+    }
+    else
+    {
+      snprintf(prompt, sizeof(prompt), "$ ");
     }
 
 }

@@ -1,28 +1,42 @@
 
 #include "history.h"
 
+#define historyBufferMaxSize 9999
+#define ownerOnlyPermissions 0600
 
 static void getHistoryFilePath(char *pathBuffer, size_t size);
 
 void addHistory(char *command, int *historyCount, char *historyBuffer[])
 {
-    if(command[0] == '\0')
-    {
+   if (command[0] == '\0')
+   {
         return;
-    }
+   }
 
-    if (*historyCount > 0 && strcmp(historyBuffer[*historyCount - 1 ], command) == 0)
-    {
+   if (*historyCount > 0 && strcmp(historyBuffer[*historyCount - 1], command) == 0)
+   {
         return;
-    }
+   }
+   
+   
+   
+   if(*historyCount < historyBufferMaxSize)
+   {
 
-    if(*historyCount < 10000)
-    {
-        
         historyBuffer[*historyCount] = strdup(command);
-        (*historyCount) ++; //TODO this adresses my concern about buffer overflows of history too long(just copying if is less than limit) yet still dont thinks is a solid enough patch
+        (*historyCount)++;
+
+   }
+
+   else
+   {
+        
+        free(historyBuffer[0]);
+        memmove(&historyBuffer[0], &historyBuffer[1], (historyBufferMaxSize - 1) * sizeof(char *));
+        historyBuffer[historyBufferMaxSize - 1] = strdup(command);
 
     }
+
 }
 
 void dumpHistory(char *historyBuffer[])
@@ -30,7 +44,7 @@ void dumpHistory(char *historyBuffer[])
     char historyPath[1024]; //TODO this should be much of a problem since definiton of getHistoryFilePath is always looking for a temp in home
     getHistoryFilePath(historyPath, sizeof(historyPath));
 
-    int fd = open(historyPath, O_CREAT | O_TRUNC | O_WRONLY, 0600);
+    int fd = open(historyPath, O_CREAT | O_TRUNC | O_WRONLY, ownerOnlyPermissions);
 
     if(fd == -1)
     {

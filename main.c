@@ -50,7 +50,6 @@ void REPL()
 
     createPrompt();
     //set up
-    memset(argv,0,sizeof(argv));
     int argumentCount = 0;
 
     bool redirectedstdout = false;
@@ -82,8 +81,8 @@ void REPL()
     }
 
     addHistory(userInput, &historyCount, historyBuffer);
-    argumentCounter(userInput, &argumentCount);
-    argumentExtractor(userInput, argumentCount);
+    argumentCounter(userInput, &argumentCount);//TODO Remove counter -> currently not in use
+    argumentExtractor(userInput);
     
 
     expandArguments(argv);

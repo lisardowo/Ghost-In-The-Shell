@@ -1,140 +1,136 @@
 #include "arguments.h"
 
+#define temporalBuffer 4096
+
 char userInput[10000];
 
-static char argvStorage[10000]; //TODO what would happen if way to many arguments? like WAY TO MANY also, i think this is max memory for linnuix programs
-char *argv[1000];
+char **argv = NULL;
+int argvCapacity = 0;
 
 static char storage[1000];
 static int storage_position = 0;
 
-void argumentExtractor(char *userInput, int argumentCount)
+void resetArgv()
 {
-
-	char token[1000];
-  int tokenLen = 0 ;
-  int argIndex = 0;
-  int storagePos = 0;
-
-  bool inSingle = false;
-  bool inDouble = false;
-  bool escaped = false;
-
-  int maxArgs = 99;
-
-  if (argumentCount > 0 && argumentCount < 100)
-  {
-    maxArgs = argumentCount;
-  }
-
-  for (int i = 0 ; ; i++)
-  {
-      bool endOfInput = (userInput[i] == '\0');
-      bool splitInPosition = (!endOfInput && userInput[i] == ' ' && !inSingle && !inDouble && !escaped);
-
-
-      if(endOfInput || splitInPosition)
-      {
-          if (escaped)
-          {
-              if(tokenLen < ((int)sizeof(token) - 1))
-              {
-                  token[tokenLen ++] = '\\';
-              }
-              escaped = false;
-          } 
-          if (tokenLen > 0 && argIndex < maxArgs)
-          {
-            token[tokenLen] = '\0';
-
-            if (storagePos + tokenLen + 1 >= (int)sizeof(argvStorage))
-            {
-              break;
-            }
-
-            argv[argIndex] = &argvStorage[storagePos];
-            memcpy(argv[argIndex], token, tokenLen + 1);
-            storagePos += tokenLen + 1;
-            argIndex++;
-            tokenLen = 0;
-          }
-
-          if(endOfInput)
-          {
-            break;
-          } 
-         
-          continue;
-      }
-      if (escaped)
-      {
-        if (inDouble)
+    if (argv != NULL)
+    {
+        for ( int i = 0 ; argv[i] != NULL ; i++)
         {
-          if (userInput[i] == '\"' || userInput[i] == '\\' || userInput[i] == '$' || userInput[i] == ' ' || userInput[i] == '\n')
-          {
-              if(tokenLen < ((int)sizeof(token) - 1))
-              {
-                token[tokenLen++] = userInput[i];
-              }
-          }
-          else 
-          {
-             if (tokenLen < ((int)sizeof(token) - 1))
-             {
-                token[tokenLen++] = '\\';
-             }
-             if (tokenLen < ((int)sizeof(token) - 1))
-             {
-                token[tokenLen++] = userInput[i];
-             }
-          }
+            free(argv[i]);
         }
-        else 
+        free(argv);
+        argv = NULL;
+    }
+    argvCapacity = 0;
+}
+
+void argumentExtractor(char *userInput)
+{
+    resetArgv();
+    int argIndex = 0;
+    argvCapacity = 10;
+    argv = calloc(argvCapacity, sizeof(char *));
+    char token[temporalBuffer];
+    int tokenLen = 0;
+    bool inSingle, inDouble, escaped = false;
+
+    for (int i = 0 ;; i++)
+    {
+        char c = userInput[i];
+        bool endOfInput = (c == '\0');
+        bool split = (!endOfInput && userInput[i] == ' ' && !inSingle && !inDouble && !escaped);
+        
+        if(endOfInput || split)
         {
-          if(tokenLen < ((int)sizeof(token) - 1))
-          {
-              token[tokenLen ++] = userInput[i];
-          }
-        }
-
-        escaped = false;
-        continue;
-      }
-
-      if (userInput[i] == '\\')
-      {
-          if (inSingle)
-          {
-            if (tokenLen < (int)sizeof(token) - 1)
+            if (escaped)
             {
-                token[tokenLen ++] = '\\';
+                if(tokenLen < (int)sizeof(token) - 1)
+                {
+                    token[tokenLen++] = '\\';
+                }
+                escaped = false;
             }
-          }
-          else
-          {
-            escaped = true;
-          }
-          continue;
-      }
-      if (userInput[i] == '\"' && !inSingle)
-      {
-          inDouble = toogleState(inDouble);
-          continue;
-      }
-
-      if (userInput[i] == '\'' && !inDouble)
-      {
-          inSingle = toogleState(inSingle);
-          continue;
-      }
-
-      if (tokenLen < (int)sizeof(token) - 1)
-      {
-          token[tokenLen ++] = userInput[i];
-      }
-
-  }
-  argv[argIndex] = NULL; // for vulnerable version, change this null for a fixed last element indicator string
+            if(tokenLen > 0 || inDouble || inSingle)
+            {
+                token[tokenLen] = '\0';
+                if (argIndex + 1 >= argvCapacity)
+                {
+                    argvCapacity *= 2;
+                    argv = realloc(argv, argvCapacity * sizeof(char *));
+                }
+                argv[argIndex++] = strdup(token);
+                tokenLen = 0; 
+            }
+            if(endOfInput)
+            {
+                break;
+            }
+            continue;
+        }
+        
+        if(escaped)
+        {
+            if(inDouble)
+            {
+                if(c == '"' || c == '\\' || c == '$' || c == '`' || c == '\n')
+                {
+                    if (tokenLen < (int)sizeof(token) - 1 )
+                    {
+                        token[tokenLen++] = c ;
+                    }
+                    else
+                    {
+                    if(tokenLen < (int)sizeof(token) - 1 )
+                        {
+                            token[tokenLen++] = '\\';
+                        }
+                        if(tokenLen < (int)sizeof(token) - 1)
+                        {
+                            token[tokenLen++] = c;
+                        }
+                    }
+                }
+                else
+                {
+                    if (tokenLen < (int)sizeof(token) - 1 )
+                    {
+                        if(tokenLen < (int)sizeof(token - 1))
+                        {
+                            token[tokenLen++] = c;
+                        }
+                    }
+                }
+                escaped = false;
+                continue;
+            }
+        if (c == '\\')
+        {
+            if(inSingle)
+            {
+                if (tokenLen < (int)sizeof(token) - 1) token[tokenLen++] = c;
+            }
+            else
+            {
+                escaped = true;
+            }
+            continue;
+        }
+        if ( c == '"' && !inSingle)
+        {
+            inDouble =  !inDouble;//Create a func toggle state?
+            continue; 
+        }
+        if(c == '\'' && !inDouble)
+        {
+            inSingle = !inSingle;
+            continue;
+        }
+        if(tokenLen < (int)sizeof(token) - 1)
+        {
+            token[tokenLen++] = c;
+        }
+        }
+    }
 }
 
 

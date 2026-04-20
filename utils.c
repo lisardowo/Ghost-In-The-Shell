@@ -4,6 +4,7 @@
 
 char binPath[100000]; //TODO what if someone on purpose creates a long ass binary ?
 extern char prompt[1024]; //same problem of "main" prompt
+#define generalPermissions 0644
 
 void createPrompt()
 {
@@ -67,8 +68,7 @@ bool isOperator(char *token)
 
 int getFileDescriptor(const char *descriptorTarget, int flags)
 {
-  int fileDescriptor = open(descriptorTarget, flags, 0644);
-
+  int fileDescriptor = open(descriptorTarget, flags, generalPermissions);
   return fileDescriptor;
 }
 

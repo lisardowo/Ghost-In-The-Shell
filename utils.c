@@ -2,55 +2,48 @@
 #include <fcntl.h>
 #include "utils.h"
 
-char binPath[100000]; //TODO what if someone on purpose creates a long ass binary ?
-extern char prompt[1024]; //same problem of "main" prompt
+char binPath[100000]; 
+extern char prompt[1024];
 #define generalPermissions 0644
 
 void createPrompt()
 {
 
-    char tempcwd[1024];
+  char cwd[4096];
 
-    if (getcwd(prompt, sizeof(tempcwd)) != NULL)
-    {
-      if(strcmp(tempcwd, "/") == 0)
-      {
-        snprintf(prompt, sizeof(tempcwd), "~ / $ ");
-        return;
-       }
+  if (getcwd(cwd, sizeof(cwd)) == NULL)
+  {
+    snprintf(prompt,sizeof(prompt), "$ ");
+    return;
+  }
 
-      char *temp[1024]; //TODO using a fixed size of cwd and prompting creates the ability to RCE -> I read that dirs name are capped to 256 but PATHS can be up to 4096
-      char modifiablePrompt[1024];
-      strncpy(modifiablePrompt, prompt, sizeof(modifiablePrompt)); 
-      modifiablePrompt[sizeof(modifiablePrompt) - 1] = '\0';
-      
-      char *modpromptPtr = strtok(modifiablePrompt, "/");
-      int i = 0;
 
-      while(modpromptPtr != NULL)
-      {
-        temp[i] = modpromptPtr;
-        i++;
-        modpromptPtr = strtok(NULL, "/");
-      }
-      if (i >= 2)
-      {
-        snprintf(prompt, sizeof(prompt), "%s/%s $ ", temp[i - 2], temp[i - 1]);
-      }
-      else if (i == 1)
-      {
-        snprintf(prompt, sizeof(prompt), "%s $ ", temp[0]);
-      }
-      else
-      {
-        snprintf(prompt, sizeof(prompt), "$ ");
-      }
+  char modfiable[4096];
+  strncpy(modfiable, cwd , sizeof(modfiable) - 1);
+  modfiable[sizeof(modfiable) - 1] = 0;
 
-    }
-    else
-    {
-      snprintf(prompt, sizeof(prompt), "$ ");
-    }
+  char *parts[512];
+  int count = 0;
+
+  char *token = strtok(modfiable, "/");
+  while (token != NULL && count < 511)
+  {
+    parts[count++] = token;
+    token = strtok(NULL, "/");
+  }
+
+  if (count >= 2)
+  {
+    snprintf(prompt, sizeof(prompt), "%s/%s $ ", parts[count - 2] , parts[count - 1]);
+  }
+  else if (count == 1)
+  {
+    snprintf(prompt, sizeof(prompt), "%s $ ", parts[0]);
+  }
+  else
+  {
+    snprintf(prompt, sizeof(prompt), "$ ");
+  }
 
 }
 

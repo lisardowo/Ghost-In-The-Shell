@@ -241,8 +241,8 @@ size_t lengestCommonPrefix(char **matches, size_t count)
 
 size_t fileMatches(char *prefix, char ***matches)
 {
-    char dirPath[1024]; //TODO  same with prompt and stuff, long ass paths can lead to RCE
-    char filePrefix[256]; //TODO this shouldnt create mucho problem since longer prefixes are jst ignored
+    char dirPath[1024]; 
+    char filePrefix[256]; 
 
     char *lastSlash = strrchr(prefix, '/');
 
@@ -277,7 +277,7 @@ size_t fileMatches(char *prefix, char ***matches)
         }
         if (strncmp(entry->d_name, filePrefix, strlen(filePrefix)) == 0)
         {
-            char fullPath[2046]; //TODO RCE, BUFFER OVERFLOW
+            char fullPath[2046];
             if (lastSlash != NULL)
             {
                 

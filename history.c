@@ -42,7 +42,7 @@ void addHistory(char *command, int *historyCount, char *historyBuffer[])
 
 void dumpHistory(char *historyBuffer[])
 {
-    char historyPath[1024]; //TODO this should be much of a problem since definiton of getHistoryFilePath is always looking for a temp in home
+    char historyPath[1024]; 
     getHistoryFilePath(historyPath, sizeof(historyPath));
 
     int fd = open(historyPath, O_CREAT | O_TRUNC | O_WRONLY, ownerOnlyPermissions);
@@ -61,7 +61,7 @@ void dumpHistory(char *historyBuffer[])
 
 static void getHistoryFilePath(char *pathBuffer, size_t size)
 {
-    char *home = getenv("HOME");//TODO what if home not set? exits a temp to create the file? -> should create file in an arbitrary location, can this be used to acces where not supposed to?
+    char *home = getenv("HOME");
     if (home != NULL)
     {
         snprintf(pathBuffer, size, "%s/.GIshellHistory", home);

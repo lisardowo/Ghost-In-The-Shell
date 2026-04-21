@@ -12,13 +12,12 @@
 #include "commands.h"
 
 //TODO bug: cuando pegas cosas con comillas, el auto completado detecta las comillas y las cierra automaticamente (Se debe asumir que si lo esta pegando el usuario, es por que ya no necesita autocompletar)
-//TODO 
+//TODO jump between words when ctrl + arrow are detected
 
-void createPrompt();
 void REPL();
-char *historyBuffer[10000]; // TODO What if history to long? -> Buffer overflow, remote code execution?
+char *historyBuffer[10000]; 
 int historyCount;
-char prompt[1024]; //user can create a long ass dir/dirPath to max out the prompt size
+char prompt[1024];
 
 typedef enum
 {
@@ -65,7 +64,7 @@ void REPL()
     int segment = 0;
     int position = 0;
 
-    int pipelineSegment[100]; //TODO I remember this has some error raising if way to many segments -> Search for that
+    int pipelineSegment[100]; 
     segmentType pipeLineConditionals[100];
 
     int pipelineCount = 0;
@@ -82,7 +81,7 @@ void REPL()
     }
 
     addHistory(userInput, &historyCount, historyBuffer);
-    argumentCounter(userInput, &argumentCount);//TODO Remove counter -> currently not in use
+    argumentCounter(userInput, &argumentCount);
     argumentExtractor(userInput);
 
     expandArguments(argv);
@@ -204,7 +203,7 @@ void REPL()
       {
         if (argv[i + 1] == NULL)
         {
-          printf("Esto deberia dejar escribir en multiples lineas\n"); //TODO esto deberia dejar de escribir en multiples lineas
+          printf("Esto deberia dejar escribir en multiples lineas\n"); 
           break;
 
         }
@@ -228,7 +227,7 @@ void REPL()
       {
         if (argv[i + 1] == NULL)
         {
-          printf("Esto deberia dejar escribir en multiples lineas\n"); //TODO esto deberia dejar de escribir en multiples lineas
+          printf("Esto deberia dejar escribir en multiples lineas\n"); 
           break;
 
         }
@@ -252,7 +251,7 @@ void REPL()
       {
         if (argv[i + 1] == NULL)
         {
-          printf("Esto deberia dejar escribir en multiples lineas\n"); //TODO esto deberia dejar de escribir en multiples lineas
+          printf("Esto deberia dejar escribir en multiples lineas\n"); 
           break;
 
         }

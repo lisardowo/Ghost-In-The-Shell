@@ -7,8 +7,6 @@ char userInput[10000];
 char **argv = NULL;
 int argvCapacity = 0;
 
-static char storage[1000];
-static int storage_position = 0;
 
 void resetArgv()
 {
@@ -227,7 +225,7 @@ bool toogleState(bool state)
 
 
 static char *newArgv[1000];
-static char globStorage[20000];
+
 static int globStoragePosition = 0;
 
 static void resetGlobStorage()
@@ -252,14 +250,11 @@ void expandGlobs(char *argv[])
             {
                 for (size_t j = 0; j < globResult.gl_pathc ; j++)
                 {
-                    int len = strlen(globResult.gl_pathv[j]);
-
-                    if ((globStoragePosition + len) + 1 < (int)sizeof(globStorage) && newArgc < 99)
-                    {
-                        strcpy(&globStorage[globStoragePosition], globResult.gl_pathv[j]);
-                        newArgv[newArgc++] = &globStorage[globStoragePosition];
-                        globStoragePosition += len + 1;
-                    }
+                  char *copy = strdup(globResult.gl_pathv[j]);
+                  if(copy != NULL)
+                  {
+                    newArgv[newArgc++] = copy;
+                  }
                 }
             }
             globfree(&globResult);
@@ -272,6 +267,20 @@ void expandGlobs(char *argv[])
             }
         }
             newArgv[newArgc] = NULL;
+            int originalArgc = 0;
+            while(argv[originalArgc] != NULL)
+            {
+                originalArgc++;
+            }
+
+            for(int i = 0 ; i < originalArgc ; i++)
+            {
+                if (argv[i] != NULL && (strchr(argv[i], '*') != NULL || strchr(argv[i], '?') != NULL))
+                {
+                    free(argv[i]);
+                    argv[i] = NULL;
+                }
+            }
 
             for (int i = 0 ; i <= newArgc ; i++)
             {
@@ -361,15 +370,8 @@ void restoreSpaces(char *userInput)
 	}
 }
 
-
-static void resetStorage_position() 
-{
-    storage_position = 0;
-}
-
 void expandArguments(char *argv[])
 {
-    resetStorage_position();
 
     for(int i = 0 ; argv[i] != NULL; i++)
     {
@@ -430,12 +432,11 @@ void expandArguments(char *argv[])
 
                 if (isExpandible)
                 {
-                    int len = strlen(tempBuffer);
-                    if((storage_position + len) + 1 < (int)sizeof(storage))
+                    char *expandend = strdup(tempBuffer);
+                    if (expandend != NULL)
                     {
-                        strcpy(&storage[storage_position], tempBuffer);
-                        argv[i] = &storage[storage_position];
-                        storage_position += (len + 1);
+                        free(argv[i]);
+                        argv[i] = expandend;
                     }
                 }
 

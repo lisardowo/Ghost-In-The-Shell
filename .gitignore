@@ -6,3 +6,4 @@ src/*.txt
 historyFile
 *.txt
 globtest/
+script.py

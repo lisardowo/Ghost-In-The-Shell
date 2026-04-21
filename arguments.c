@@ -32,14 +32,16 @@ void argumentExtractor(char *userInput)
     argv = calloc(argvCapacity, sizeof(char *));
     char token[temporalBuffer];
     int tokenLen = 0;
-    bool inSingle, inDouble, escaped = false;
+    bool inSingle = false;
+    bool inDouble = false;
+    bool escaped = false;
 
     for (int i = 0 ;; i++)
     {
         char c = userInput[i];
         bool endOfInput = (c == '\0');
         bool split = (!endOfInput && userInput[i] == ' ' && !inSingle && !inDouble && !escaped);
-        
+
         if(endOfInput || split)
         {
             if (escaped)
@@ -59,7 +61,7 @@ void argumentExtractor(char *userInput)
                     argv = realloc(argv, argvCapacity * sizeof(char *));
                 }
                 argv[argIndex++] = strdup(token);
-                tokenLen = 0; 
+                tokenLen = 0;
             }
             if(endOfInput)
             {
@@ -67,47 +69,61 @@ void argumentExtractor(char *userInput)
             }
             continue;
         }
-        
+
         if(escaped)
         {
             if(inDouble)
             {
                 if(c == '"' || c == '\\' || c == '$' || c == '`' || c == '\n')
                 {
-                    if (tokenLen < (int)sizeof(token) - 1 )
+                    if (tokenLen < (int)sizeof(token) - 1)
                     {
-                        token[tokenLen++] = c ;
-                    }
-                    else
-                    {
-                    if(tokenLen < (int)sizeof(token) - 1 )
-                        {
-                            token[tokenLen++] = '\\';
-                        }
-                        if(tokenLen < (int)sizeof(token) - 1)
-                        {
-                            token[tokenLen++] = c;
-                        }
+                        token[tokenLen++] = c;
                     }
                 }
                 else
                 {
-                    if (tokenLen < (int)sizeof(token) - 1 )
+                    if(tokenLen < (int)sizeof(token) - 1)
                     {
-                        if(tokenLen < (int)sizeof(token - 1))
-                        {
-                            token[tokenLen++] = c;
-                        }
+                        token[tokenLen++] = '\\';
+                    }
+                    if(tokenLen < (int)sizeof(token) - 1)
+                    {
+                        token[tokenLen++] = c;
                     }
                 }
-                escaped = false;
-                continue;
             }
+            else if (inSingle)
+            {
+                if (tokenLen < (int)sizeof(token) - 1)
+                {
+                    token[tokenLen++] = '\\';
+                }
+                if(tokenLen < (int)sizeof(token) - 1)
+                {
+                    token[tokenLen++] = c;
+                }
+            }
+            else
+            {
+                if(tokenLen < (int)sizeof(token) - 1)
+                {
+                    token[tokenLen++] = c;
+                }
+            }
+
+            escaped = false;
+            continue;
+        }
+
         if (c == '\\')
         {
             if(inSingle)
             {
-                if (tokenLen < (int)sizeof(token) - 1) token[tokenLen++] = c;
+                if (tokenLen < (int)sizeof(token) - 1)
+                {
+                    token[tokenLen++] = c;
+                }
             }
             else
             {
@@ -115,10 +131,10 @@ void argumentExtractor(char *userInput)
             }
             continue;
         }
-        if ( c == '"' && !inSingle)
+        if (c == '"' && !inSingle)
         {
-            inDouble =  !inDouble;//Create a func toggle state?
-            continue; 
+            inDouble = !inDouble;
+            continue;
         }
         if(c == '\'' && !inDouble)
         {
@@ -129,8 +145,8 @@ void argumentExtractor(char *userInput)
         {
             token[tokenLen++] = c;
         }
-        }
     }
+    argv[argIndex] = NULL;
 }
 
 

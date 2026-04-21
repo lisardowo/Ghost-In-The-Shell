@@ -11,6 +11,9 @@
 #include "history.h"
 #include "commands.h"
 
+//TODO bug: cuando pegas cosas con comillas, el auto completado detecta las comillas y las cierra automaticamente (Se debe asumir que si lo esta pegando el usuario, es por que ya no necesita autocompletar)
+//TODO 
+
 void createPrompt();
 void REPL();
 char *historyBuffer[10000]; // TODO What if history to long? -> Buffer overflow, remote code execution?
@@ -296,6 +299,7 @@ void REPL()
 
   for (int i = 0 ; i < segmentCount ; i++)
   {
+
     int currentArgument = 0;
     while (segments[i][currentArgument] != NULL)
     {
@@ -337,6 +341,12 @@ void REPL()
 
     if (pipelineSegment[v] > 1)
     {
+      char **current = pipelines[v][0];
+      if(current[0] == NULL)
+      {
+        lastStatus  = 1;
+        continue;
+      }
       lastStatus = runPipeline(toBackgrund,argv, pipelines[v], pipelineSegment[v], historyBuffer , redirectedstdout, redirectedstderr, appendStdOut, appendStdErr, stdoutPath, stderrPath, stdoutAppendPath , stderrAppendPath);
     }
     else

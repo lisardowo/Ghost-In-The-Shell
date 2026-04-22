@@ -3,6 +3,7 @@
 
 static struct termios g_old;
 #define linuxMaxSize 4096
+#define maxSequenceLen  5
 
 bool startCommandsList(availableCommands *list)
 {
@@ -439,7 +440,7 @@ void readLineTab(char *prompt, availableCommands *list, char *out, size_t outSiz
 
         if (c == '\033')
         {
-            char seq[3];
+            char seq[maxSequenceLen];
             if (read(STDIN_FILENO, &seq[0], 1) == 0)
             {
                 continue;
@@ -451,6 +452,56 @@ void readLineTab(char *prompt, availableCommands *list, char *out, size_t outSiz
 
             if (seq[0] == '[')
             {
+                if(seq[1] == '1')
+                {
+                    if(read(STDIN_FILENO, &seq[2], 1) == 0) continue;
+
+                    if(seq[2] == '~')
+                    {
+                        cursorPos = 0;
+                        redraw(prompt, out, cursorPos);
+                        continue;
+                    }
+                    if(seq[2] == ';')
+                    {
+                        if(read(STDIN_FILENO, &seq[3], 1) == 0)
+                        {
+                            continue;
+                        }
+                        if(read(STDIN_FILENO, &seq[4], 1) == 0)
+                        {
+                            continue;
+                        }
+                        if(seq[3] == '5')
+                        {
+                            if(seq[4] == leftArrowKey)
+                            {
+                                while(cursorPos > 0 && out[cursorPos] == ' ')
+                                {
+                                    cursorPos--;
+                                }
+                                while(cursorPos > 0 && out[cursorPos] != ' ')
+                                {
+                                    cursorPos--;
+                                }
+                                redraw(prompt, out, cursorPos);
+                            }
+                            else if(seq[4] == rightArrowKey)
+                            {
+                                while (cursorPos < len && out[cursorPos] != ' ')
+                                {
+                                    cursorPos ++;
+                                }
+                                while (cursorPos < len && out[cursorPos] == ' ')
+                                {
+                                    cursorPos++;
+                                }
+                                redraw(prompt, out, cursorPos);
+                            }
+                        }
+                    }
+                    continue;
+                }
                 if (seq[1] == leftArrowKey)
                 {
                     if(cursorPos > 0)
@@ -624,6 +675,13 @@ void readLineTab(char *prompt, availableCommands *list, char *out, size_t outSiz
         {
             if (c == '\'' || c == '\"')
             {
+                if (cursorPos < len && out[cursorPos] == c)
+                {
+                    cursorPos++;
+                    redraw(prompt, out, cursorPos);
+                    tabCount = 0;
+                    continue;
+                }
                 if (len + 2 < outSize)
                 {
                     for (size_t i = len + 2 ; i > cursorPos + 1 ; i--)

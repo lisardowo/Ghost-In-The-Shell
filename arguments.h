@@ -11,8 +11,12 @@
 
 char* sanitizeInput(char* userInput);
 
-extern char **commandTokens;
 extern char userInput[10000];
+
+extern char **commandTokens;
+extern char commandTokensCapacity;
+
+
 
 void argumentCounter(char *userInput, int* argumentCount);
 void argumentExtractor(char *userInput);

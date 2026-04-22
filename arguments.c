@@ -3,10 +3,8 @@
 #define temporalBuffer 4096
 
 char userInput[10000];
-
-extern char **commandTokens = NULL;
-extern char commandTokensCapacity = 0;
-
+char **commandTokens = NULL;
+char commandTokensCapacity = 0;
 
 void resetCommandTokens()
 {
@@ -24,7 +22,7 @@ void resetCommandTokens()
 
 void argumentExtractor(char *userInput)
 {
-    resetcommandTokens();
+    resetCommandTokens();
     int argIndex = 0;
     commandTokensCapacity = 10;
     commandTokens = calloc(commandTokensCapacity, sizeof(char *));

@@ -1,5 +1,7 @@
 
+
 #include "history.h"
+#include <errno.h>
 
 #define historyBufferMaxSize 9999
 #define ownerOnlyPermissions 0600
@@ -42,17 +44,17 @@ void addHistory(char *command, int *historyCount, char *historyBuffer[])
 
 void dumpHistory(char *historyBuffer[])
 {
-    char historyPath[1024]; 
+
+    char historyPath[4096];
     getHistoryFilePath(historyPath, sizeof(historyPath));
 
     int fd = open(historyPath, O_CREAT | O_TRUNC | O_WRONLY | O_NOFOLLOW, ownerOnlyPermissions);
 
     if(fd == -1)
     {
-        return;
         if(errno == ELOOP)
         {
-            fprintf(stderr, "shell: warning: refusing to write, history file is a symlink");
+            fprintf(stderr, "shell: warning: history file is a symlink, refusing to write\n");
         }
         return;
     }
@@ -66,32 +68,35 @@ void dumpHistory(char *historyBuffer[])
 
 static void getHistoryFilePath(char *pathBuffer, size_t size)
 {
-   char *home = getenv("HOME");
 
-   if (home == NULL)
-   {
+    char *home = getenv("HOME");
+
+    if (home == NULL)
+    {
         snprintf(pathBuffer, size, ".GIshellHistory");
         return;
-   }
+    }
 
-   size_t homeLen = strlen(home);
-   if(homeLen == 0 || homeLen > 4096)
-   {
-    fprintf(stderr, "shell: warning: invalid HOME, local history file will bre created \n");
-    snprintf(pathBuffer, size, ".GIshellHistory");
-    return;
-   }
-   snprintf(pathBuffer, size, "%s/.GIshellHistory", home);
+    size_t homeLen = strlen(home);
+    if (homeLen == 0 || homeLen > 4096)
+    {
+        fprintf(stderr, "shell: warning: HOME is invalid, using local history file\n");
+        snprintf(pathBuffer, size, ".GIshellHistory");
+        return;
+    }
+
+    snprintf(pathBuffer, size, "%s/.GIshellHistory", home);
 }
 
 int getHistory(char *historyBuffer[])//try deleting histCount as argument and declare it locally
 {
   
   int historyCount = 0;
-  char historyPath[4096];
-  getHistoryFilePath(historyPath, sizeof(historyPath));
 
-  int historyFd = open(historyPath ,O_RDONLY | O_NOFOLLOW);
+    char historyPath[4096];
+    getHistoryFilePath(historyPath, sizeof(historyPath));
+
+    int historyFd = open(historyPath, O_RDONLY | O_NOFOLLOW);
 
   if(historyFd == -1)
   {
@@ -202,18 +207,18 @@ bool expandHistory(char userInput[], size_t userInputSize, int historyCount, cha
                 }
                 numStr[numPos] = '\0';
 
-                int targetIndex = atoi(numStr);
+                errno = 0;
+                char *endPtr = NULL;
+                long targetIndex = strtol(numStr, &endPtr, 10);
 
-                if(targetIndex > 0 && targetIndex <= historyCount)
-                {
-                    expansion = historyBuffer[targetIndex - 1];
-                    skipChars = numPos;
-                }
-                else
+                if (errno == ERANGE || endPtr == numStr || targetIndex <= 0 || targetIndex > historyCount)
                 {
                     printf("shell: !%s: not found\n", numStr);
                     return false;
                 }
+
+                expansion = historyBuffer[(int)targetIndex - 1];
+                skipChars = numPos;
             }
             if (expansion != NULL)
             {

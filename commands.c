@@ -1,6 +1,7 @@
 #include "commands.h"
 #include "proccesess.h"
 
+#include <errno.h>
 
 int executeBin(bool toBackground, char *stdoutPath,char *stdErrPath,char *stdOutAppendPath, char *stdErrAppendPath, bool redirectedstdout, bool redirectedStdErr, bool appendStdOut, bool appendStdErr, char *tokens[])
 {
@@ -242,13 +243,15 @@ int history(char **current, char *historyBuffer[], bool redirectedstdout, bool a
         }
         else
         {
-            int number = atoi(current[1]);
-            if (number > 0 && number < linesToDisplay)
-            {
-                start = linesToDisplay - number;
-            }
+           errno = 0;
+           char *endPtr = NULL;
+           long number = strtol(current[1], &endPtr, 10);
+
+           if (errno != ERANGE && endPtr != current[1] && number > 0 && number < linesToDisplay)
+           {
+                start = linesToDisplay - (int)number;
+           }
         }
-    }
 
     if (redirectedstdout)
     {
@@ -275,6 +278,8 @@ int history(char **current, char *historyBuffer[], bool redirectedstdout, bool a
     for (int i = start ; i < end ; i++)
     {
         printf("%d %s\n", i + 1 , historyBuffer[i]);
+    }
+    return 0;
     }
     return 0;
 }

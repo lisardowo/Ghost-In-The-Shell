@@ -1,7 +1,8 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
+
+#define MAX_SEGMENTS 100
+#define MAX_ARGS_PER_SEG 100
+#define MAX_PIPELINES 100
 
 #include "proccesess.h"
 #include "pipeline.h"
@@ -10,10 +11,6 @@
 #include "selfCompletion.h"
 #include "history.h"
 #include "commands.h"
-
-#define MAX_SEGMENTS 100
-#define MAX_ARGS_PER_SEG 100
-#define MAX_PIPELINES 100
 
 //TODO bug: cuando pegas cosas con comillas, el auto completado detecta las comillas y las cierra automaticamente (Se debe asumir que si lo esta pegando el usuario, es por que ya no necesita autocompletar)
 //TODO jump between words when ctrl + arrow are detected
@@ -218,6 +215,12 @@ void REPL()
           break;
         }
 
+        if (segment >= MAX_SEGMENTS - 1)
+        {
+          fprintf(stderr, "shell: too many pipeline segments (max %d)\n", MAX_SEGMENTS - 1);
+          goto next_iteration;
+        }
+
         segments[segment][position] = NULL;
         typeOfSegment[segment] = AND;
         segment ++;
@@ -240,6 +243,12 @@ void REPL()
         {
           printf("Syntax error near unexpected token '||'\n");
           break;
+        }
+
+        if (segment >= MAX_SEGMENTS - 1)
+        {
+          fprintf(stderr, "shell: too many pipeline segments (max %d)\n", MAX_SEGMENTS - 1);
+          goto next_iteration;
         }
 
         segments[segment][position] = NULL;
@@ -266,6 +275,12 @@ void REPL()
           break;
         }
 
+        if (segment >= MAX_SEGMENTS - 1)
+        {
+          fprintf(stderr, "shell: too many pipeline segments (max %d)\n", MAX_SEGMENTS - 1);
+          goto next_iteration;
+        }
+
         segments[segment][position] = NULL;
         typeOfSegment[segment] = PIPE;
         segment ++;
@@ -275,17 +290,18 @@ void REPL()
 
       }
 
-      if(segment >= MAX_SEGMENTS)
-      {
-        fprintf(stderr, "shell: too many pipeline segments  (max %d)\n", MAX_SEGMENTS - 1);
-      }
-
-      if(position >= MAX_ARGS_PER_SEG - 1)
-      {
-        fprintf(stderr, "shell: too many arguments in segment(max %d)\n", MAX_ARGS_PER_SEG);
-        continue;
-      }
       segments[segment][position++] = argv[i];
+
+      if (segment >= MAX_SEGMENTS - 1)
+      {
+        fprintf(stderr, "shell: too many pipeline segments (max %d)\n", MAX_SEGMENTS - 1);
+        goto next_iteration;
+      }
+      if (position >= MAX_ARGS_PER_SEG - 1)
+      {
+        fprintf(stderr, "shell: too many arguments in segment (max %d)\n", MAX_ARGS_PER_SEG - 1);
+        goto next_iteration;
+      }
     }
 
     segments[segment][position] = NULL;
@@ -413,6 +429,10 @@ void REPL()
     {
       break;
     }
+    continue;
+
+next_iteration:
+    free(pipelines);
   }
 
   commandsFree(&commandsList);

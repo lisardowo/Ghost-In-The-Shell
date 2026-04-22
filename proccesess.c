@@ -1,6 +1,7 @@
 #include "proccesess.h"
 #include "commands.h"
 
+#define MAX_PIPELINE_PROCS 100
 job jobList[maxJobs];
 static int nextJobId = 1;
 
@@ -239,8 +240,8 @@ int externalInChild(char **current, bool redirectedStdErr, bool appendStdErr, ch
 
 int runPipeline(bool toBackground, char *argv[],char *commands[100][100], int commandCount, char **historyBuffer, bool redirectedstdout, bool redirectedstderr, bool appendStdOut, bool appendStdErr, char *stdoutPath, char *stderrPath, char *stdoutAppendPath, char *stderrAppendPath)
 {
-    int prev_pipe_read_end = -1;
-    pid_t pids[100];
+    int prevPipeReadEnd = -1;
+    pid_t pids[MAX_PIPELINE_PROCS];
     int pidCount = 0;
 
     for (int i = 0; i < commandCount; i++)
@@ -256,6 +257,16 @@ int runPipeline(bool toBackground, char *argv[],char *commands[100][100], int co
             }
         }
 
+        if (pidCount >= MAX_PIPELINE_PROCS)
+        {
+            fprintf(stderr, "shell: too many processes in pipeline (max %d)\n", MAX_PIPELINE_PROCS);
+            if (prevPipeReadEnd != -1 )
+            {
+                close(prevPipeReadEnd);
+                break;
+            }
+        }
+
         pid_t pid = fork();
         if (pid == -1)
         {
@@ -267,10 +278,10 @@ int runPipeline(bool toBackground, char *argv[],char *commands[100][100], int co
 
             restoreSignalsInChild();
         
-            if (prev_pipe_read_end != -1)
+            if (prevPipeReadEnd != -1)
             {
-                dup2(prev_pipe_read_end, STDIN_FILENO);
-                close(prev_pipe_read_end);
+                dup2(prevPipeReadEnd, STDIN_FILENO);
+                close(prevPipeReadEnd);
             }
 
             if (!is_last_command)
@@ -301,15 +312,15 @@ int runPipeline(bool toBackground, char *argv[],char *commands[100][100], int co
         
             pids[pidCount++] = pid;
 
-            if (prev_pipe_read_end != -1)
+            if (prevPipeReadEnd != -1)
             {
-                close(prev_pipe_read_end);
+                close(prevPipeReadEnd);
             }
     
             if (!is_last_command)
             {
                 close(fds[1]); 
-                prev_pipe_read_end = fds[0];
+                prevPipeReadEnd = fds[0];
             }
         }
 

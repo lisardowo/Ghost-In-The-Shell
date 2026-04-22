@@ -4,30 +4,30 @@
 
 char userInput[10000];
 
-char **argv = NULL;
-int argvCapacity = 0;
+extern char **commandTokens = NULL;
+extern char commandTokensCapacity = 0;
 
 
-void resetArgv()
+void resetCommandTokens()
 {
-    if (argv != NULL)
+    if (commandTokens != NULL)
     {
-        for ( int i = 0 ; argv[i] != NULL ; i++)
+        for ( int i = 0 ; commandTokens[i] != NULL ; i++)
         {
-            free(argv[i]);
+            free(commandTokens[i]);
         }
-        free(argv);
-        argv = NULL;
+        free(commandTokens);
+        commandTokens = NULL;
     }
-    argvCapacity = 0;
+    commandTokensCapacity = 0;
 }
 
 void argumentExtractor(char *userInput)
 {
-    resetArgv();
+    resetcommandTokens();
     int argIndex = 0;
-    argvCapacity = 10;
-    argv = calloc(argvCapacity, sizeof(char *));
+    commandTokensCapacity = 10;
+    commandTokens = calloc(commandTokensCapacity, sizeof(char *));
     char token[temporalBuffer];
     int tokenLen = 0;
     bool inSingle = false;
@@ -53,12 +53,12 @@ void argumentExtractor(char *userInput)
             if(tokenLen > 0 || inDouble || inSingle)
             {
                 token[tokenLen] = '\0';
-                if (argIndex + 1 >= argvCapacity)
+                if (argIndex + 1 >= commandTokensCapacity)
                 {
-                    argvCapacity *= 2;
-                    argv = realloc(argv, argvCapacity * sizeof(char *));
+                    commandTokensCapacity *= 2;
+                    commandTokens = realloc(commandTokens, commandTokensCapacity * sizeof(char *));
                 }
-                argv[argIndex++] = strdup(token);
+                commandTokens[argIndex++] = strdup(token);
                 tokenLen = 0;
             }
             if(endOfInput)
@@ -144,7 +144,7 @@ void argumentExtractor(char *userInput)
             token[tokenLen++] = c;
         }
     }
-    argv[argIndex] = NULL;
+    commandTokens[argIndex] = NULL;
 }
 
 
@@ -224,7 +224,7 @@ bool toogleState(bool state)
 }
 
 
-static char *newArgv[1000];
+static char *newcommandTokens[1000];
 
 static int globStoragePosition = 0;
 
@@ -233,18 +233,18 @@ static void resetGlobStorage()
     globStoragePosition = 0;
 }
 
-void expandGlobs(char *argv[])
+void expandGlobs(char *commandTokens[])
 {
     int newArgc = 0;
     resetGlobStorage();
 
-    for (int i = 0 ; argv[i] != NULL ; i++)
+    for (int i = 0 ; commandTokens[i] != NULL ; i++)
     {
-        if(strchr(argv[i], '*') != NULL || strchr(argv[i], '?') != NULL)
+        if(strchr(commandTokens[i], '*') != NULL || strchr(commandTokens[i], '?') != NULL)
         {
             glob_t globResult;
 
-            int result = glob(argv[i], GLOB_NOCHECK | GLOB_TILDE, NULL , &globResult);
+            int result = glob(commandTokens[i], GLOB_NOCHECK | GLOB_TILDE, NULL , &globResult);
 
             if (result == 0)
             {
@@ -253,7 +253,7 @@ void expandGlobs(char *argv[])
                   char *copy = strdup(globResult.gl_pathv[j]);
                   if(copy != NULL)
                   {
-                    newArgv[newArgc++] = copy;
+                    newcommandTokens[newArgc++] = copy;
                   }
                 }
             }
@@ -262,29 +262,29 @@ void expandGlobs(char *argv[])
         else
             {
 
-                newArgv[newArgc++] = argv[i];
+                newcommandTokens[newArgc++] = commandTokens[i];
            
             }
         }
-            newArgv[newArgc] = NULL;
+            newcommandTokens[newArgc] = NULL;
             int originalArgc = 0;
-            while(argv[originalArgc] != NULL)
+            while(commandTokens[originalArgc] != NULL)
             {
                 originalArgc++;
             }
 
             for(int i = 0 ; i < originalArgc ; i++)
             {
-                if (argv[i] != NULL && (strchr(argv[i], '*') != NULL || strchr(argv[i], '?') != NULL))
+                if (commandTokens[i] != NULL && (strchr(commandTokens[i], '*') != NULL || strchr(commandTokens[i], '?') != NULL))
                 {
-                    free(argv[i]);
-                    argv[i] = NULL;
+                    free(commandTokens[i]);
+                    commandTokens[i] = NULL;
                 }
             }
 
             for (int i = 0 ; i <= newArgc ; i++)
             {
-                argv[i] = newArgv[i];
+                commandTokens[i] = newcommandTokens[i];
             }
 
         }
@@ -370,17 +370,17 @@ void restoreSpaces(char *userInput)
 	}
 }
 
-void expandArguments(char *argv[])
+void expandArguments(char *commandTokens[])
 {
 
-    for(int i = 0 ; argv[i] != NULL; i++)
+    for(int i = 0 ; commandTokens[i] != NULL; i++)
     {
-        if (argv[i] == NULL)
+        if (commandTokens[i] == NULL)
         {
             continue;
         }
 
-        char *originalToken = argv[i];
+        char *originalToken = commandTokens[i];
         char tempBuffer[1000];
         int temp_position = 0;
         bool isExpandible = false;
@@ -435,8 +435,8 @@ void expandArguments(char *argv[])
                     char *expandend = strdup(tempBuffer);
                     if (expandend != NULL)
                     {
-                        free(argv[i]);
-                        argv[i] = expandend;
+                        free(commandTokens[i]);
+                        commandTokens[i] = expandend;
                     }
                 }
 

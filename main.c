@@ -85,22 +85,22 @@ void REPL()
     argumentCounter(userInput, &argumentCount);
     argumentExtractor(userInput);
 
-    expandArguments(argv);
-    expandGlobs(argv);
+    expandArguments(commandTokens);
+    expandGlobs(commandTokens);
 
     bool toBackgrund = false;
 
     if (argumentCount > 0)
     {
       int lastIndex = 0;
-      while(argv[lastIndex + 1] != NULL )
+      while(commandTokens[lastIndex + 1] != NULL )
       {
         lastIndex++;
       }
-      if(strcmp(argv[lastIndex], "&") == 0)
+      if(strcmp(commandTokens[lastIndex], "&") == 0)
       {
         toBackgrund = true;
-        argv[lastIndex] = false;
+        commandTokens[lastIndex] = false;
       }
     }
 
@@ -109,21 +109,21 @@ void REPL()
     char *segments[MAX_SEGMENTS][MAX_ARGS_PER_SEG];
     segmentType typeOfSegment[MAX_SEGMENTS];
 
-    if (argv[0] == NULL)
+    if (commandTokens[0] == NULL)
     {
       continue;
     }
 
-    for(int i = 0 ; argv[i] != NULL ; i++)
+    for(int i = 0 ; commandTokens[i] != NULL ; i++)
     {
       //echo  >   eas 2>  ead
       //tok0 op0  tok1 op1 tok2
       //ls -lh > test.txt
       //tok tok op tok
 
-      if (strcmp(argv[i], ">") == 0 || strcmp(argv[i], "1>") == 0)
+      if (strcmp(commandTokens[i], ">") == 0 || strcmp(commandTokens[i], "1>") == 0)
       {
-        if (argv[i + 1] == NULL)
+        if (commandTokens[i + 1] == NULL)
         {
           printf("syntax error: expected file after '>'\n");
           redirectedstdout = false;
@@ -133,16 +133,16 @@ void REPL()
         else
         {
           redirectedstdout = true;
-          stdoutPath = argv[i + 1];
+          stdoutPath = commandTokens[i + 1];
 
           i++;
           continue;
         }
 
       }
-      else if (strcmp(argv[i], "2>") == 0)
+      else if (strcmp(commandTokens[i], "2>") == 0)
       {
-        if (argv[i + 1] == NULL)
+        if (commandTokens[i + 1] == NULL)
         {
           printf("syntax error: expected file after '2>'\n");
           redirectedstderr = false;
@@ -154,15 +154,15 @@ void REPL()
         {
 
           redirectedstderr = true;
-          stderrPath = argv[i + 1];
+          stderrPath = commandTokens[i + 1];
           i++;
           continue;
 
         }
       }
-      else if (strcmp(argv[i], ">>") == 0) // appendstdout
+      else if (strcmp(commandTokens[i], ">>") == 0) // appendstdout
       {
-        if (argv[i + 1] == NULL)
+        if (commandTokens[i + 1] == NULL)
         {
           printf("syntax error: expected file after '>>'\n");
           appendStdOut = false;
@@ -173,15 +173,15 @@ void REPL()
         {
 
           appendStdOut = true;
-          stdoutAppendPath = argv[i + 1];
+          stdoutAppendPath = commandTokens[i + 1];
           i++;
           continue;
 
         }
       }
-      else if (strcmp(argv[i], "2>>") == 0) // appendstderr
+      else if (strcmp(commandTokens[i], "2>>") == 0) // appendstderr
       {
-        if (argv[i + 1] == NULL)
+        if (commandTokens[i + 1] == NULL)
         {
           printf("syntax error: expected file after '2>>'\n");
           appendStdErr = false;
@@ -192,7 +192,7 @@ void REPL()
         {
 
           appendStdErr = true;
-          stderrAppendPath = argv[i + 1];
+          stderrAppendPath = commandTokens[i + 1];
           i++;
           continue;
 
@@ -200,9 +200,9 @@ void REPL()
 
       }
 
-      else if (strcmp(argv[i], "&&") == 0)
+      else if (strcmp(commandTokens[i], "&&") == 0)
       {
-        if (argv[i + 1] == NULL)
+        if (commandTokens[i + 1] == NULL)
         {
           printf("Esto deberia dejar escribir en multiples lineas\n"); 
           break;
@@ -230,9 +230,9 @@ void REPL()
 
       }
 
-      else if (strcmp(argv[i], "||") == 0)
+      else if (strcmp(commandTokens[i], "||") == 0)
       {
-        if (argv[i + 1] == NULL)
+        if (commandTokens[i + 1] == NULL)
         {
           printf("Esto deberia dejar escribir en multiples lineas\n"); 
           break;
@@ -260,9 +260,9 @@ void REPL()
 
       }
 
-      else if (strcmp(argv[i], "|") == 0)
+      else if (strcmp(commandTokens[i], "|") == 0)
       {
-        if (argv[i + 1] == NULL)
+        if (commandTokens[i + 1] == NULL)
         {
           printf("Esto deberia dejar escribir en multiples lineas\n"); 
           break;
@@ -290,7 +290,7 @@ void REPL()
 
       }
 
-      segments[segment][position++] = argv[i];
+      segments[segment][position++] = commandTokens[i];
 
       if (segment >= MAX_SEGMENTS - 1)
       {
@@ -366,7 +366,7 @@ void REPL()
           lastStatus  = 1;
           continue;
         }
-        lastStatus = runPipeline(toBackgrund,argv, pipelines[v], pipelineSegment[v], historyBuffer , redirectedstdout, redirectedstderr, appendStdOut, appendStdErr, stdoutPath, stderrPath, stdoutAppendPath , stderrAppendPath);
+        lastStatus = runPipeline(toBackgrund,commandTokens, pipelines[v], pipelineSegment[v], historyBuffer , redirectedstdout, redirectedstderr, appendStdOut, appendStdErr, stdoutPath, stderrPath, stdoutAppendPath , stderrAppendPath);
       }
       else
       {

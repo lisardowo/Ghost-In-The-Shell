@@ -15,7 +15,7 @@ See the [README](README.md) to get an overview of the project. Here are some hel
 
 ## IMPORTANT
 
-I do not accept PR of corrected code. I mean, lets say you found a flag and patch it Im really happy you did that but unfortunately if you want to PR that patch I wont accept it, Is not cause I don't appreciate your efforts, is cause the purpose of this shell is to keep it as vulnerable as possible so new people can try this and learn.However you can always fill your [win report](templates/eportWin_template) to help other programmers to achieve that victory.
+I do not accept PR of corrected code. I mean, lets say you found a flag and patch it Im really happy you did that but unfortunately if you want to PR that patch I wont accept it, Is not cause I don't appreciate your efforts, is cause the purpose of this shell is to keep it as vulnerable as possible so new people can try this and learn.However you can always fill your [win report](templates/reportWin_template) to help other programmers to achieve that victory.
 
 ## Getting started
 

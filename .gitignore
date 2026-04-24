@@ -8,3 +8,6 @@ historyFile
 globtest/
 script.py
 vulnerabilityTestScripts/
+pythonTestScripts/
+test/
+otherStuff/

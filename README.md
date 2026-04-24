@@ -167,4 +167,4 @@ Still not sure how to start? don't worry, Ill leave some resources I found that 
 
 ## I want to cheat
 
-Hey, dont worry if you feel that you are stuck is normal, theres no shame in needing some help! each issue has hints and if you really feel like you cant, well then you can [email me](pkgnn@proton.me) for the file with the answer and a diff patch ! I wont judge and will be more than pleasured to explain why this works like that.
+Hey, dont worry if you feel that you are stuck is normal, theres no shame in needing some help! each issue has hints and if you really feel like you cant, well then you can [email me](mailto:pkgnn@proton.me) for the file with the answer and a diff patch ! I wont judge and will be more than pleasured to explain why this works like that.

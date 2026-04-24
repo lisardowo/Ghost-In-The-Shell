@@ -279,7 +279,7 @@ void expandGlobs(char *tokens[])
                     tokens[i] = NULL;
                 }
             }
-
+            free(tokens);
             for (int i = 0 ; i <= newArgc ; i++)
             {
                 tokens[i] = newcommandTokens[i];

@@ -1,0 +1,152 @@
+{
+    "stage1": {
+        "commands" : ["echo hello",
+                     "echo hello world",
+                     "type echo",
+                     "type ls",
+                     "invalid_command_xyz",
+                     "exit 0"
+                    ],
+        "expectedOut" : ["hello",
+                         "hello world",
+                         "echo is a shell builtin",
+                         "ls is usr/bin/ls",
+                         "invalid_command_xyz: command not found",
+                         "No output, shell should exit cleanly"
+                         
+                        ]
+
+    },
+    "stage2": {
+        "commands" : ["pwd",
+                     "cd NONEXISTENTDIR",
+                     "pwd",
+                     "cd ",
+                     "pwd"
+                    ],
+        "expectedOut" : ["/home/<YOURUSER>/<PATH>/src",
+                         "cd: NONEXISTENTDIR: No such file or directory",
+                         "/home/<YOURUSER>/PATH/src",
+                         "No output, shall change to HOME",
+                         "/home/<YOURUSER>/"
+                        ]
+    },
+    "stage3": {
+        "commands" : ["echo 'hello world'",
+                     "echo \"hello world\" ",
+                     "echo one\\two",
+                     "echo \"a\"b\"",
+                     "echo 'a\\b'",
+                     "\"echo\" \"quoted executable\""
+                    ],
+        "expectedOut" : ["hello world",
+                         "hello world",
+                         "onetwo",
+                         "ab",
+                         "a\\b",
+                         "quoted executable"
+                        ]
+    },
+    "stage4": {
+        "commands" : ["echo hello world > out.txt",
+                     "cat out.txt",
+                     "ls /non-existent 2> err.txt",
+                     "cat err.txt",
+                     "echo linea1 >> out.txt",
+                     "cat out.txt"
+                    ],
+        "expectedOut" : ["No output, shall create a file called out.txt",
+                         "hello world",
+                         "No output, shall create a file called err.txt",
+                         "ls: cannot access '/non-existent': No such file or directory",
+                         "invalid_command_xyz: command not found",
+                         "hello world \n linea1"
+                        ]
+    },
+    "stage5": {
+        "commands" : ["type+TAB echo",
+                     "type+TAB pwd",
+                     "echo+TAB hola"
+                    ],
+        "expectedOut" : ["echo is a shell builtin",
+                         "pwd is a shell builtin",
+                         "hola"
+                        ]
+    },
+    "stage6": {
+        "commands" : ["cat ../err_l+TAB",
+                     "cat ../hi.t+TAB",
+                     "cat ../ok.t+TAB",
+                     "cat ../typeT.t+TAB",
+                     "cat ../niuF+TAB"
+                    ],
+        "expectedOut" : ["error",
+                         "hello",
+                         "hola",
+                         "echo is /usr/bin/echo",
+                         "niuappend\nniuappend"
+                        ]
+    },
+    "stage7": {
+        "commands" : ["sleep 1 &",
+                     "jobs",
+                     "sleep 2 &",
+                     "jobs"
+                    ],
+        "expectedOut" : ["[1] proccesID",
+                         "[1] Running    sleep",
+                         "[2] proccesID",
+                         "[1]+ Done     sleep\n[2]  Running     sleep"
+                        ]
+    },
+    "stage8": {
+        "commands" : ["echo hello | cat",
+                     "printf \"a\\nb\\n\" | wc -l",
+                     "echo hello | tr a-z A-Z",
+                     "printf \"x\\ny\\nz\\n\" | grep y",
+                     "echo test | rev",
+                     "printf \"1\\n2\\n3\\n\" | tail -n 1"
+                    ],
+        "expectedOut" : ["hello",
+                         "2",
+                         "HELLO",
+                         "y",
+                         "tset",
+                         "3"
+                        ]
+    },
+    "stage9": {
+        "commands" : ["echo cmd1",
+                     "echo cmd2",
+                     "history"
+                    ],
+        "expectedOut" : ["cmd1",
+                         "cmd2",
+                         "most recent shall be: history, echo cmd2, echo cmd1"
+                        ]
+    },
+    "stage10": {
+        "commands" : {"session1":  ["echo persist1",
+                     "echo persist2",
+                     "history",
+                     "exit"
+                    ],
+                    "session2" : ["history",
+                     "echo persist3",
+                     "history",
+                     "exit"
+                    ]
+                },
+        "expectedOut" : {"session1":  ["persist1",
+                     "persist2",
+                     "most recent commands shall be persist1, persist2",
+                     "no output, shall exit cleanly"
+                    ],
+                    "session2" : ["most recent commands shall be: history, exit, persist1, persist2",
+                     "echo persist3",
+                     "history most recent command shall be persist3",
+                     "exit"
+                    ]
+                }
+    }
+}

@@ -7,9 +7,9 @@
 int executeBin(bool toBackground, const redirectConfig *redirect , char *tokens[])
 {
   
-  char* binPath = getPath(tokens[0]);
+  char* resolvedBinPath = getPath(tokens[0]);
 
-  if(binPath == NULL)
+  if(resolvedBinPath == NULL)
   {
     printf("%s: command not found\n", tokens[0]);
     return -1;
@@ -72,15 +72,15 @@ int executeBin(bool toBackground, const redirectConfig *redirect , char *tokens[
     }
 
   
-    execv(binPath, tokens);
-    free(binPath);
+    execv(resolvedBinPath, tokens);
+    free(resolvedBinPath);
     exit(1);
   }
   
   else
   {
     
-    free(binPath);
+    free(resolvedBinPath);
     if (toBackground)
     {
       addJob(pid, tokens[0]);
@@ -400,7 +400,7 @@ int echo(char **current, const redirectConfig *redirect)
       return 0;
 }
 
-int jobs(job *jobList, const redirectConfig *redirect)
+int jobs(job *currentJobs, const redirectConfig *redirect)
 {
     if (redirect->redirectStdout)
     {
@@ -408,9 +408,9 @@ int jobs(job *jobList, const redirectConfig *redirect)
         int fd = getFileDescriptor(redirect->stdOutPath , O_WRONLY | O_TRUNC | O_CREAT);
         for(int i = 0 ; i < maxJobs ; i++)
         {
-            if (jobList[i].running)
+            if (currentJobs[i].running)
             {
-                dprintf(fd, "[%d]    Running         %s\n", jobList[i].id, jobList[i].command);
+                dprintf(fd, "[%d]    Running         %s\n", currentJobs[i].id, currentJobs[i].command);
             }
     
         }

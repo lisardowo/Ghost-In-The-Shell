@@ -11,19 +11,17 @@
 
 char* sanitizeInput(char* userInput);
 
-extern char userInput[10000];
-
 extern char **commandTokens;
-extern char commandTokensCapacity;
+extern int commandTokensCapacity;
 
 
 
 void argumentCounter(char *userInput, int* argumentCount);
 void argumentExtractor(char *userInput);
-void expandGlobs(char *commandTokens[]);
+void expandGlobs(char *argv[]);
 bool toogleState(bool state);
 bool toogleQuotes(bool activeQuotes);
 void removeQuotes(char *token);
 void restoreSpaces(char *userInput);
 void spacesInQuotes(char *userInput);
-void expandArguments(char *commandTokens[]);
+void expandArguments(char *argv[]);

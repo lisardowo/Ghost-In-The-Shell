@@ -1,5 +1,6 @@
 #include "proccesess.h"
 #include "commands.h"
+#include <signal.h>
 
 #define MAX_PIPELINE_PROCS 100
 job jobList[maxJobs];
@@ -209,8 +210,8 @@ int runBuiltinChild(char **current, redirectConfig *redirect, char *historyBuffe
 
 int externalInChild(char **current, redirectConfig *redirect)
 {
-    char *binPath = getPath(current[0]);
-    if (binPath == NULL)
+    char *resolvedPath = getPath(current[0]);
+    if (resolvedPath == NULL)
     {
 
         if(redirect->redirectStderr)
@@ -234,14 +235,14 @@ int externalInChild(char **current, redirectConfig *redirect)
         }
         return 127;
     }
-    execv(binPath, current);
-    free(binPath);
+    execv(resolvedPath, current);
+    free(resolvedPath);
     return 126;
 }
 
-int runPipeline(bool toBackground, char *commandTokens[],char *commands[100][100], int commandCount, char **historyBuffer, redirectConfig *redirect)
+int runPipeline(bool toBackground, char *pipelineArgv[],char *commands[100][100], int commandCount, char **historyBuffer, redirectConfig *redirect)
 {
-    (void)commandTokens;
+    (void)pipelineArgv;
     int prevPipeReadEnd = -1;
     pid_t pids[MAX_PIPELINE_PROCS];
     int pidCount = 0;

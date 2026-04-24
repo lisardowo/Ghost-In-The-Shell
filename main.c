@@ -38,6 +38,8 @@ typedef struct
 
 } shellState;
 
+static char *argv[8192];
+
 static void shellStateInit(shellState *state);
 static void shellStateDestroy(shellState *state);
 static void redirectConfigInit (redirectConfig *redirect);
@@ -102,6 +104,7 @@ static void redirectConfigInit (redirectConfig *redirect)
 
 static bool readAndPrepareInput(shellState *state)
 {
+  char userInput[8192];
   createPrompt(state->prompt, sizeof(state->prompt));
   readLineTab(state->prompt, &state->commandsList, userInput, sizeof(userInput), &state->historyCount, state->historyBuffer);
   sanitizeInput(userInput);
@@ -118,25 +121,31 @@ static bool readAndPrepareInput(shellState *state)
   expandArguments(commandTokens);
   expandGlobs(commandTokens);
 
+  for (int i = 0; commandTokens[i] != NULL; i++) {
+    argv[i] = commandTokens[i];
+  }
+  argv[argumentCount] = NULL;
+
+
   return true;
   
 }
 
 static bool detectBackground()
 {
-  if (commandTokens == NULL || commandTokens[0] == NULL)
+  if (argv[0] == NULL)
   {
     return false;
   }
   int lastIndex = 0;
-  while(commandTokens[lastIndex + 1] != NULL)
+  while(argv[lastIndex + 1] != NULL)
   {
     lastIndex++;
   }
 
-  if(strcmp(commandTokens[lastIndex], "&") == 0)
+  if(strcmp(argv[lastIndex], "&") == 0)
   {
-    commandTokens[lastIndex] = NULL;
+    argv[lastIndex] = NULL;
     return true;
   }
 
@@ -148,60 +157,60 @@ static bool parseTokensToSegments(char *segments[MAX_SEGMENTS][MAX_ARGS_PER_SEG]
   int segment = 0;
   int position = 0;
   bool ok = true;
-  for(int i = 0 ; commandTokens[i] != NULL ; i++)
+  for(int i = 0 ; argv[i] != NULL ; i++)
   {
-    char *tok = commandTokens[i];
+    char *tok = argv[i];
     if (strcmp(tok, ">") == 0 || strcmp(tok, "1>") == 0)
     {
-      if (commandTokens[i + 1] == NULL)
+      if (argv[i + 1] == NULL)
       {
         fprintf(stderr, "syntax error: expected file after '>'\n");
         ok = false;
         break;
       }
       redirect->redirectStdout = true;
-      redirect->stdOutPath = commandTokens[++i];
+      redirect->stdOutPath = argv[++i];
       continue;
     }
     if(strcmp(tok, ">>") == 0)
     {
-      if (commandTokens[i + 1] == NULL)
+      if (argv[i + 1] == NULL)
       {
         fprintf(stderr, "syntax error: expected file after '>>'\n");
         ok = false;
         break;
       }
       redirect->appendStdout = true;
-      redirect->stdoutAppendPath = commandTokens[++i];
+      redirect->stdoutAppendPath = argv[++i];
       continue;
     }
     if(strcmp(tok, "2>") == 0)
     {
-      if (commandTokens[i + 1] == NULL)
+      if (argv[i + 1] == NULL)
       {
         fprintf(stderr, "syntax error: expected file after '2>'\n");
         ok = false;
         break;
       }
       redirect->redirectStderr = true;
-      redirect->stdErrPath = commandTokens[++i];
+      redirect->stdErrPath = argv[++i];
       continue;
     }
     if(strcmp(tok, "2>>") == 0)
     {
-      if (commandTokens[i + 1] == NULL)
+      if (argv[i + 1] == NULL)
       {
         fprintf(stderr, "syntax error: expected file after '2>>'\n");
         ok = false;
         break;
       }
       redirect->appendStderr = true;
-      redirect->stderrAppendPath = commandTokens[++i];
+      redirect->stderrAppendPath = argv[++i];
       continue;
     }
     if(strcmp(tok, "&&") == 0 || strcmp(tok, "||") == 0 || strcmp(tok, "|") == 0)
     {
-      if(commandTokens[i + 1] == NULL)
+      if(argv[i + 1] == NULL)
       {
         fprintf(stderr, "syntax error: expected file after %s\n", tok);
         ok = false;
@@ -311,7 +320,7 @@ static int dispatchBuiltIn(char **current, shellState *state, redirectConfig *re
     return 0;
   }
   
-  return executeBin(toBackground, redirect, commandTokens);
+  return executeBin(toBackground, redirect, argv);
 
 }
 static int executePipelines(char *(*pipelines)[MAX_SEGMENTS][MAX_ARGS_PER_SEG],int pipelineCount,int pipelineSegment[MAX_PIPELINES],
@@ -347,7 +356,7 @@ bool toBackground,bool *outShouldExit)
     }
     if(pipelineSegment[v] > 1)
     {
-      lastStatus = runPipeline(toBackground, commandTokens,pipelines[v], pipelineSegment[v], state->historyBuffer, redirect);
+      lastStatus = runPipeline(toBackground, argv,pipelines[v], pipelineSegment[v], state->historyBuffer, redirect);
     }
     else
     {
@@ -371,7 +380,7 @@ static void REPL(shellState *state)
     }
     bool toBackground = detectBackground();
     checkBacktroundJobs();
-    if(commandTokens[0] == NULL)
+    if(argv[0] == NULL)
     {
       continue;
     }

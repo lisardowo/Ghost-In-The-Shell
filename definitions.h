@@ -2,6 +2,7 @@
 #pragma once
 
 #include "sys/types.h"
+#include <stdbool.h>
 
 #define MAX_LINUX_SIZE 4096
 

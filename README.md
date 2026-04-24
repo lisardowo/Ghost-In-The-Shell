@@ -74,10 +74,27 @@ in the github page theres a lot of issues, each issue represents a vulnerabilty,
 |----|---------------------|-----|----|
 |This tells you if is a vulnerability to test or any other kind of issue|What is the recommended technique to exploit the program (uaf, TOCTOC, etc)|the level recommended to achieve the challenge|Open means no one has obtained the flag yet, closed means someone found the flag, the vulnerability is still there tho so if you find yourself stuck.. well you know who to ask!|
 
-Each issue contains hints and recommendations if you feel stuck but the answer wont be displayed there. Why? well, i thought the issues as a place to talk, to suggest answers, techniques and ask for help, there people can make comunnity and feedback other learners (please, be kind !!)
+Each issue contains hints and recommendations if you feel stuck, yet the answer wont be displayed there. Why? well, i thought the issues as a place to talk, to suggest answers, techniques and ask for help, there people can make comunnity and feedback other learners (please, be kind !!). (if you still want the answer well, dont worry, is normal be stuck and I don't judge. Please consult [I want to cheat section](#i-want-to-cheat), don't be ashamed of the name, is not cheating I just found it funny to call it that)
 
 If you want to contribute to this project please refeer to [contributing](src/CONTRIBUTING.md)
 
+### How to win? - FLAGS
+
+If a exploit effectively worked, the shell prints to stdout a flag similar to:
+```
+DVShell{VULN01_st4ck_0v3rfl0w_pwn3d}
+```
+
+this means that you achieved it, good job!
+
+### I win, then what?
+
+If you achieved the flag, heres some things you can do:
+
+ 1. First of all, please take a look at the issues section of this repo and upload your [win report](src/reportWin_template.md) to the vulnerability you exploited so other people can understand your work and maybe use it as reference if they're stuck
+ 2. Then, if you want, you can fork the repo and try to patch the bug, so you can have a more secure version
+
+--- 
 ## Vulnerabilities
 
 Behind is all known vulnerabilites to this day, if you found another and want to contribute, please refeer to [contributing](src/CONTRIBUTING.md)
@@ -136,14 +153,7 @@ make expert →  VULN-14  →  VULN-15  →  VULN-16  →  VULN-17 →  VULN-18 
 
 ---
 
-## Flags
 
-If a exploit effectively worked, the shell prints to stdout a flag similar to:
-```
-DVShell{VULN01_st4ck_0v3rfl0w_pwn3d}
-```
-
---- 
 
 ## Some resources
 
@@ -157,4 +167,4 @@ Still not sure how to start? don't worry, Ill leave some resources I found that 
 
 ## I want to cheat
 
-Hey, dont worry if you feel that you are stuck is normal, theres no shame in needing some help! each issue has hints and if you really feel like you cant, well then you can [email me](pkgnn@proton.me) for the diff with the answer! I wont judge and will be more than pleasured to explain why this works like that.
+Hey, dont worry if you feel that you are stuck is normal, theres no shame in needing some help! each issue has hints and if you really feel like you cant, well then you can [email me](pkgnn@proton.me) for the file with the answer and a diff patch ! I wont judge and will be more than pleasured to explain why this works like that.

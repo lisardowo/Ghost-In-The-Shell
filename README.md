@@ -34,20 +34,14 @@ Main pipeline:
 
 Modules:
 
-- `arguments.*`: Parsing and extraction of the arguments that are written in prompt.
-- `binariesManager.*`: Module in charge to find and execute binaries.
-- `completition.*`: Logic behind autocomplete of input when pressing TAB.
-- `inputManager.*`: Implementation of the prompt functions, directly related to completition.
-- `lineEdition.*`: Implementation of the completition module, recieving the autocompleted commands and replacing the in terminal input, highly depends in "input manager" and "completition" modules.
-- `quotationParser.*`: Parser that detects and interpret input inside quotation.
-- `getHistory.*` : module that manages the history logic
-- `expansion.*` : module that expands special tokens
-- `fileCompletion.*` : module that handles self completion logic
-- `globbing.*` : module that expands tokens 
-- `jobsManager.*` : module that controls backgrounding of jobs
-- `pipeline.*` : module that controls pipeling 
-- `signalsManager.*` : module that handles keyboard signals in runtime
+- `definitions.h` : general definitions
+- `commands.*` : implementation of builtin and external commands  
+- `arguments.*` : handles arguments parsing related logic 
+- `selfCompletion.*` : implementation of selfCompletion with tab
+- `history.*` : logic of the history builtin
+- `proccesess.*` : handles different signals and behavior of the program
 - `utils.*` : module with utility, general purpose functions
+
 ## 2. Dependencies
 
 
@@ -60,26 +54,24 @@ Modules:
 - `fnctl.h`
 - `stdbool.h`
 - `stdlib.h`
+- `errno.h`
+- `sys/wait.h`
+- `sts/stat.h`
+- `signal.h`
+- `dirent.h` 
+- `limits.h`
+- `termios.h`
+- `stddef.h`
 
 ### 2.3 Internal module dependencies
 
-- `main.c` depends on: `lineEdition.h`, `binariesManager.h`,`arguments.h`,`inputManager.h`,`completition.h`
-- `lineEdition.c` depends on: `lineEdition.h`, `completition.h`
-- `binariesManager.c` depends on: `binariesManager.h`, `arguments.h`
-- `arguments.c` depends on: `arguments.h`, `quotationParser.h`
-- `inputManager.c` depends on: `inputManager.h`
-- `Completition.c` depends on: `completition.h`
-- `quotationParser.c` depends on: `quotationParser.h`
-- `utils.c` depends on: `utils.h`
-- `getHistory.c` depends on: `quotationParser.h`
-- `expansion.c` depends on `expansion.h`
-- `fileCompletion.c` depends on `fileCompletion.h`
-- `globbing.c` depends on `globbing.h`
-- `jobsManager.c` depends on `jobsManager.h`, `utils.h`
-- `pipeline.c` depends on `binariesManager.h`,`signalsManager.h`,`builtIn.h`,`utils.h`
-- `signalsManager.c` depends on `signalsManager.h`
-
-
+- `main.c` depends on: `definitions.h`, `proccesess.h`,`pipeline.h`,`utils.h`,`arguments.h`, `selfCompletion.h`, `history.h`, `commands.h`
+- `history.c` depends on: `history.h`, `errno.h`
+- `utils.c` depends on :`fcntl.h`, `utils.h`
+- `arguments.c` depends on: `arguments.h`,`string.h`
+- `commands.c` depends on: `commands.h`, `proccesess.h`, `definitions.h`
+- `selfCompletion.c` depends on: `definitions.h`, `selfCompletion.h`
+-`proccesess.c` depends on: `proccesess.h`, `commands.h`, `signal.h`
 
 ## 3. Public API (headers)
 
@@ -93,156 +85,104 @@ This section lists all functions declared in headers (expected API surface).
   - based in argument count, tokenize the arguments and stores them to a argument vector variable
 - `bool toogleState(bool state);`
   - utility function for is quoted logic (used in a primitive version) no longer in use for most code base
+- `void expandGlobs(char *argv[]);`
+    - expands * and ? operators  
+- `bool toogleQuotes(bool activeQuotes);`
+    -   change the boolean activeQuotes 
+- `void removeQuotes(char *token);`
+    -   remove quotes of input to clean up the iterated command
+- `void restoreSpaces(char *userInput);`
+    -   change the placeholder back to blank spaces  
+- `void spacesInQuotes(char *userInput);`
+    - change blank spaces inside quotes for a placeholder to operate over the quoted input
+- `void expandArguments(char *argv[]);`
+    - function that expands arguments marked with $ operator
+
+### 3.2 `commands.h`
+
+- `int history(char **current, char *historyBuffer[], const redirectConfig *redirect);`
+  - Loads and show history
+- `int pwd(const redirectConfig *redirect);`
+  - Print current working directory
+- `int cd(char **current, const redirectConfig *redirect);`
+  - Move in your directories
+- `int echo(char **current, const redirectConfig *redirect);`
+  - outputs the aguments you give them
+- `int jobs(char **current, const redirectConfig *redirect);`
+  - Show queued jobs and their state
+- `int type(char **current, const redirectConfig *redirect);`
+  - shows if a command is builtin or system binary
+- `int executeBin(bool toBackground, const redirectConfig *redirect , char *tokens[]);`
+    - Finds and execute the binary you give provide, if the binary is not found shows an error
+
+### 3.3 `history.h`
 
 
-### 3.2 `binariesManager.h`
+- `void addHistory(char *command, int *historyCount, char *historyBuffer[]);`
+  - Adds the command just used to history
 
-- `char* getPath(char *command);`
-  - if a command(argv[0]) is not a built-in function then program looks for it in PATH variable and if found returns the dir of the binary .
-- `void executeBin(char *stdoutPath,char *stdErrPath, bool redirectedstdout, bool redirectedStdErr, bool appendStdOut, bool appendStdErr, char *argv[]);`
-  - First six parameters are "flags" that controls if the output of given  binary has to be redirected (">" operator) or will display in stdout, last parameter is the full (already tokenized) input (argv). Function forks the procces and executes the binary which addres is given by getPath(), when done child fork collapses to his father, father keeps waiting to that collapse to continue
+- `void dumpHistory(char *historyBuffer[]);`
+  - Opens the history file and dumps the session history buffer
 
-### 3.3 `completition.h`
+- `int getHistory(char *historyBuffer[]);`
+  - reads the history file and loads previous sessions commands to current session buffer
 
-- `typedef struct{} available commands;`
-  - Struct that store all availableCommands system-wide for the autocomplete function, elements of the object are : 
-  * char **items; -> array of strings that are all the commands found
-  * size_t count; -> how many commands are in the struct
-  * size_t cap; -> Represents the maximum count of commands (used mainly to realloc memory for the structure in order to hold all the commands that can be found)
+- `bool expandHistory(char userInput[], size_t userInputSize, int historyCount, char *historyBuffer[]);`
+    - expand for the program special operators such as !n and !!
+
+### 3.5 `selfCompletion.h`
 
 - `bool startCommandsList(availableCommands *list);`
-  - Creates an instance of the struct and initialize its elements to 0/NULL.
+  - Initialice the structure to store posible commands.
 - `void commandsFree(availableCommands *list);`
-  - Set tha values of the struc to 0/NULL then frees the memory efectively deleting previouse instance
+  - frees the commands list when done.
 - `bool commandListGrow(availableCommands *list);`
-  - If commands surpase the limit of list->cap, function dupes cap size via realloc
-- `bool commandListAdd (availableCommands *list, char *command);`
-  - utility function that adds provided command to the list
-- `int compareCommands(const void *a,const void *b);`
-  - utility function for qsort, used in Sanitize process
+  - Grows the list capacity as the program need it.
+- `bool commandListAdd(availableCommands *list, char *command);`
+  - Adds commands to the list.
+- `int compareCommands(const void *a, const void *b);`
+  - uitlity function to compare commands.
 - `void commandListSanitize(availableCommands *list);`
-  - Adding to the current list is made in a quick, messy way. Sanitize sorts commands alphabetically and looks for duplicates, if found duplicates are deleted
+  - Sorts and deletes duplicated commands.
 - `bool getBuiltIns(availableCommands *list);`
-  - function that provides the built-ins for the list to be filled.
+  - Adds builtIns to the list.
 - `bool getBins(availableCommands *list);`
-  - function that provides the binariesPath for the list to be filled.
+  - Adds all the binaries in the system PATH to command list.
 - `bool fillCommands(availableCommands *list);`
-  - utility function that takes as input the filled but unorder list and sanitize it via commandListSanitize().
+  - fills the commands list with sanitized commands
 - `size_t lengestCommonPrefix(char **matches, size_t count);`
-  - detect the longest common prefix, used for autocompletition logic
-- `size_t prefixMatches (availableCommands *list, char *prefix, char ***matches);`
-  - Count how many commands has the same prefix and store them in a matches array
+  - Computes the longest Common prefix in stdin 
+- `size_t prefixMatches(availableCommands *list, char *prefix, char ***matches);`
+  - looks for commands that match the prefix
 - `bool startWith(char *word, char *prefix);`
-  - utility function that checks if the two parameters have the same letter and until what point they are equal
-
-### 3.4 `inputManager.h`
-
-- `char* sanitizeInput(char* userInput);`
-  - replaces new line with null terminator of the provided input
-
-
-### 3.5 `lineEdition.h`
-
-- `void readLineTab(char *prompt, availableCommands *list, char *out, size_t outSize);`
-  - Uses the other functions to read dinamically and exchange buffers when autocompleted
-- `void firstToken(char *buf, char *out, size_t outSize);`
-  - gets only the first token in the buffer.
-- `void redraw(char *prompt, char *buf);`
-  - redraws the whole propmt line to the user.
-- `void disableRaw(void);`
-  - disable raw mode and goes back to std configuration.
-- `bool enableRaw(void);`
-  - changes terminal to raw mode, capturing keys instantenously.
-
-### 3.6 `quotationParser.h`
-
-- `void removeQuotes(char *token);`
-  - remove the quotes in a argument to use it properly
-- `void restoreSpaces(char *userInput);`
-  - restore the spaces replacing the arbtary value back to a space.
-- `void spacesInQuotes(char *userInput);`
-  - replace quoted spaces for an arbitary value in arguments so it can be counted as one .
-
-### 3.7 `pipeline.h`
-
-- `int reddirectInChild(bool redirectedStdOut, bool redirectedStdErr, bool appendStdOuut, bool appendStdErr,char *stdOutPath, char *stdErrPath, char *stdoutAppendPath, char *stderrAppendPath);`
-  -  setup the output redirection of pipelined commands 
-- `int runPipeline(bool toBackground, char *argv[],char *commands[100][100], int commandCount ,char **historyBuffer, bool redirectedstdout, bool redirectedstderr, bool appendStdOut, bool appendStdErr, char *stdoutPath, char *stderrPath, char *stdoutAppendPath, char *stderrAppendPath);`
-  - Executes the piped commands 
-- `int externalInChild(char **current, bool redirectedStdErr, bool appendStdErr, char *stdErrPath, char* stdErrAppendPath);`
-  - run external commands in the pipeline
-- `int runBuiltinChild(char *argv[], char **current, char **historyBuffer,bool redirectedStdOut, bool redirectedStdErr, bool appendStdOuut, bool appendStdErr,char *stdOutPath, char *stdErrPath, char *stdoutAppendPath, char *stderrAppendPath);`
-  - run built in commands in the pipeline
-- `int runBuiltin(char *argv[], char **current, char **historyBuffer,bool redirectedStdOut, bool redirectedStdErr, bool appendStdOuut, bool appendStdErr,char *stdOutPath, char *stdErrPath, char *stdoutAppendPath, char *stderrAppendPath);`
-  - run built in commands
-
-### 3.8 `signalsManager.h`
-
-- `void ignoreSignalsInParent();`
-  - ignore keyboard signals for the program itself (to not quit with ctrl + C)
-- `void restoreSignalsInParent();`
-  - restore the ignored signal and passes it to the program to interrupt running process
-
-### 3.10 `utils.h`
-- `bool isOperator(char *token);`
-  - utility function used to set flags for operators along the code base 
-- `void createPrompt();`
-  - utility function that creates the prompt that will be rendered by drawLine function
-- `int getFileDescriptor(const char *descriptorTarget,  int flags);`
-  - utility function that gets the File descriptor for every function that needs it, may delete in the future due security uses 
-- `char* getPath(char *command);`
-  - utility function that gets the enviroment variable of PATH
-
-### 3.11 `jobsManager.h`
-
-- `typedef struct {} job;`
-  - struct that represents the backgrounded job
-  * int id;-> id of the job in the list (locally set when filling the list)
-  * pid_t pid; -> process id given by the kernel
-  * char *command; -> string of the command backgrounded
-  * bool running; -> state of the command
-- `extern job jobList[maxJobs];`
-  - array of jobStructures that represents the backgrounded jobs
-- `int addJob(pid_t pid, char *command)`
-  - fills the backgrounded job and adds it to jobList
-- `void removeJob(pid_t pid)`
-  - Takes the pid of the process to remove from the list of backgrounded Jobs when its done
-- `void checkBacktroundJobs()`
-  - checksBackgroundJobs and if one of them are Done, shows it and removes it from the list
-
-### 3.12 `globbing.h`
-- `void expandGlobs(char *argv[]);`
-  - expand glob tokens t something the shell will understand
-### 3.13 `getHistory.h`
-- `void addHistory(char *command, int *historyCount, char *historyBuffer[]);`
-  - add used command to history buffer
-- `void dumpHistory(char *historyBuffer[]);`
-  - Dumps history buffer to historyFile.txt, if historyFile.txt dont exist, will create it
-- `void getHistory(int *historyCount, char *historyBuffer[]);`
-  - loads history from historyFile to historyBuffer
-- `bool expandHistory(char userInput[], size_t userInputSize, int historyCount, char *historyBuffer[]);`
-  - utility function that expands !! arguments of history for correct interpretation
-
-### 3.14 `fileCompletion.h`
+  - Verifies if a command start with the given prefix.
 - `size_t fileMatches(char *prefix, char ***matches);`
-  - looks for the dirs and files in the system, returns how many matched the current evaluated prefix
-### 3.15 `expansion.h`
-- `void expandArguments(char *argv[]);`
-  - takes the arguments and if found a $ expands it to something the shell can understand
-### 3.16 `builtin.h`
-- `int type(char **current, bool redirectedstdout ,bool redirectedstderr, bool appendStdOut, bool appendStdErr, char *stdoutPath, char *stderrPath , char *stdoutAppendPath, char *stderrAppendPath );`
-  - says if a command is builtin or system binary
-- `int history(char **current, char *historyBuffer[], bool redirectedstdout, bool appendStdOut,  char *stdoutPath, char *stdoutAppendPath);`
-  - shows the command history of the shell
-- `int echo(char **current, bool redirectedstdout,  bool appendStdOut, char *stdoutPath,  char *stdoutAppendPath);`
-  - prints the arguments passed after echo
-- `int cd(char **current, bool redirectedstderr, bool appendStdErr, char *stderrPath, char *stderrAppendPath);`
-  - navigate trought the system file
-- `int pwd( bool redirectedstdout, bool appendStdOut, char *stdoutPath,  char *stdoutAppendPath);`
-  - prints current directory
-- `int jobs(job *jobList, bool redirectedstdout, bool appendStdOut, char *stdoutPath,  char *stdoutAppendPath);`
-  - prints the list of background jobs
+  - looks for files or directories that match the prefix
+- `void readLineTab(char *prompt, availableCommands *list, char *out, size_t outSize, int *historyCount, char *historyBuffer[]);`
+  - reads stdin, allows self completion with TAB and movement with arrows  
+- `void redraw(char *prompt, char *buf, size_t cursorPosition);`
+  - Redraws stdin matching the modified buffer
+- `void disableRaw(void);`
+  - Reset to std config of the terminal.
+- `bool enableRaw(void);`
+  - enable Raw terminal mode to read input as soon as is registered in stdin.
 
+### 3.6 `utils.h`
+
+- `bool isOperator(char *token);`
+    - toogle if current token is a operator (|, & etc)  
+`void createPrompt(char *prompt, size_t promptSize);`
+    - renders the prompt that you see while using the terminal
+`int getFileDescriptor(const char* descriptorTarget, int flags);`
+    - wrapper for open syscall that gets a file descriptor with standarized permits
+`char* getPath(char *command);`
+    - gets the path of any binary in system's PATH
+`void historyBufferFree(char *historyBuffer[]);`
+    - Cleans up the history buffer
+
+### 3.7 `definitions.h`
+    - definitions for general use amongst the program
+    
 ## 4. Functional Behavior Summary
 
 - prompt : shell shows the prompt waiting for input, input is in raw mode which allows self completion
@@ -306,17 +246,11 @@ this section explains how to add new features:
 
 ## 6 Current Known Gaps
 
-  1. lack of proper buffer/memory management
-  2. Current line editor does not support advanced editing
-  3. Autocompletion is first token only, does not have any class of argument-aware/flags completion
-  5. no config system
-  6. some buffers are fixed size
-  7. Error messages even tho are functional, some outpus are inconsistent in style and detail
-  8. quoting can still fail in specific cases
-  9. The program does not consider specific cases and states that the terminal can take
-  10. history file is created in the relative path where the shell is started
-  11. Shell will only work in linux enviroments
-  12. Codebase is unnecessary long and could be hard to modify  
+  1. Autocompletion is first token only, does not have any class of argument-aware/flags completion
+  2. no config system
+  3. The program does not consider specific cases and states that the terminal can take
+  4. Shell will only work in linux enviroments
+  
 
 ## 7 Installation and Quick Test
 

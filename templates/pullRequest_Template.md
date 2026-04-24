@@ -30,7 +30,7 @@ If you do not fill some of this checks don't worry, I will still consider your P
 - [ ] I documented the hints in the issue.
 - [ ] Code follows the [Coding Style](STYLE.md) of the project.
 - [ ] Code is compatible with the [LICENSE](LICENSE).
-- [ ] I send you the file with the answer and the diff patch to your [email](mailto:pkgnn@proton.me). ~Important, is the only mandatory field, If you haven't it will be difficult that I can accept it~
+- [ ] I send you the file with the answer and the diff patch to your [email](mailto:pkgnn@proton.me). ~ Important, is the only mandatory field, If you haven't it will be difficult that I can accept it ~
 
 ## Aditional Notes
 

@@ -386,7 +386,7 @@ void expandArguments(char *tokens[])
 
         char *originalToken = tokens[i];
         char tempBuffer[1000];
-        int temp_position = 0;
+        int tempPosition = 0;
         bool isExpandible = false;
 
         for (int v = 0 ; originalToken[v] != '\0' ; v++)
@@ -416,9 +416,9 @@ void expandArguments(char *tokens[])
                 {
                     for(int k = 0 ; envValue[k] != '\0' ; k++)
                     {
-                        if (temp_position < (int)sizeof(tempBuffer) - 1)
+                        if (tempPosition < (int)sizeof(tempBuffer) - 1)
                         {
-                            tempBuffer[temp_position++] = envValue[k]; 
+                            tempBuffer[tempPosition++] = envValue[k]; 
                         }
                     }
                 }
@@ -426,13 +426,13 @@ void expandArguments(char *tokens[])
 
             else
             {
-                if(temp_position < (int)sizeof(tempBuffer) - 1)   
+                if(tempPosition < (int)sizeof(tempBuffer) - 1)   
                 {
-                    tempBuffer[temp_position++] = originalToken[v];
+                    tempBuffer[tempPosition++] = originalToken[v];
                 }
             }   
         }
-                tempBuffer[temp_position++] = '\0';
+                tempBuffer[tempPosition++] = '\0';
 
                 if (isExpandible)
                 {

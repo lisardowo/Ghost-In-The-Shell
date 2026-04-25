@@ -4,7 +4,7 @@
 #define temporalBuffer 4096
 
 char **commandTokens = NULL;
-int commandTokensCapacity = 0;
+char commandTokensCapacity = 0;
 
 void resetcommandTokens()
 {

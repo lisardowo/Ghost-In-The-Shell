@@ -10,6 +10,10 @@ void resetcommandTokens()
 {
     if (commandTokens != NULL)
     {
+        if(commandTokens[0] != NULL)
+        {
+            free(commandTokens[0]);
+        }
         for ( int i = 0 ; commandTokens[i] != NULL ; i++)
         {
             free(commandTokens[i]);
@@ -234,12 +238,15 @@ static void resetGlobStorage()
 void expandGlobs(char *tokens[])
 {
     int newArgc = 0;
-    resetGlobStorage();
-
+    
     for (int i = 0 ; tokens[i] != NULL ; i++)
     {
         if(strchr(tokens[i], '*') != NULL || strchr(tokens[i], '?') != NULL)
         {
+
+            free(commandTokens[i]);
+            commandTokens[i] = NULL;
+
             glob_t globResult;
 
             int result = glob(tokens[i], GLOB_NOCHECK | GLOB_TILDE, NULL , &globResult);
@@ -279,7 +286,6 @@ void expandGlobs(char *tokens[])
                     tokens[i] = NULL;
                 }
             }
-            free(tokens);
             for (int i = 0 ; i <= newArgc ; i++)
             {
                 tokens[i] = newcommandTokens[i];

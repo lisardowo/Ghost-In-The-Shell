@@ -23,7 +23,7 @@ void addHistory(char *command, int *historyCount, char *historyBuffer[])
    
    
    
-   if(*historyCount < HISTORY_BUFFER_MAX_SIZE)
+   if(*historyCount <= HISTORY_BUFFER_MAX_SIZE)
    {
 
         historyBuffer[*historyCount] = strdup(command);

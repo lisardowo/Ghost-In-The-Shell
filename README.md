@@ -111,7 +111,7 @@ Behind is all known vulnerabilites to this day, if you found another and want to
 | VULN-08 | Use-After-Free in glob expansion | easy | UAF | #8 |
 | VULN-09 | Double-Free | easy | Double-free | #9 |
 | VULN-10 | Traversal Path in redirection | easy | Path traversal | #10 |
-| VULN-11 | TOCTOU in history | easy | Race condition | #11 |
+| VULN-11 | TOCTOU and file management | easy | Race condition | #11 |
 | VULN-12 | Heap overflow in expansion of environment variables | easy | Heap overflow | #12 |
 | VULN-13 | Null pointer dereference in pipeline | easy | Null deref | #13 |
 | VULN-14 | Format string with arbitrary structure | hard | Format string | #14 |

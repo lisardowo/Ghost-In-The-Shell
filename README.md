@@ -404,3 +404,18 @@ If you prefer downloading a packaged version instead of cloning directly, you ca
 make
 ./shell
 ```
+
+### 8.2 Using the AppImage
+
+For an even simpler setup, you can use the AppImage, which runs on most modern Linux distributions without installation.
+
+1.  Go to the repository's Releases section.
+2.  Download the `GhostInTheShell-x86_64.AppImage` file.
+3.  Make it executable:
+    ```bash
+    chmod +x GhostInTheShell-x86_64.AppImage
+    ```
+4.  And run it!
+    ```bash
+    ./Ghost_in_the_Shell-x86_64.AppImage
+    ```
